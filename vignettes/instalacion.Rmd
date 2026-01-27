@@ -1,0 +1,211 @@
+---
+title: "Guia de Instalacion y Configuracion"
+author: "Rodolfo Tasso Suazo"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Guia de Instalacion y Configuracion}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Instalacion Basica
+
+### Desde CRAN (cuando este disponible)
+
+```{r}
+install.packages("ciecl")
+```
+### Desde GitHub (version desarrollo)
+
+```{r}
+# Opcion 1: pak (recomendado)
+install.packages("pak")
+pak::pak("RodoTasso/ciecl")
+
+# Opcion 2: devtools
+install.packages("devtools")
+devtools::install_github("RodoTasso/ciecl")
+
+# Opcion 3: remotes
+install.packages("remotes")
+remotes::install_github("RodoTasso/ciecl")
+```
+
+## Instalacion con Dependencias Opcionales
+
+El paquete tiene dependencias minimas para funcionalidad core. Para habilitar
+todas las funcionalidades:
+
+```{r}
+# Instalacion completa con todos los paquetes opcionales
+pak::pak("RodoTasso/ciecl", dependencies = TRUE)
+```
+
+### Dependencias por Funcionalidad
+
+| Funcionalidad | Paquete Requerido | Instalacion |
+|---------------|-------------------|-------------|
+| Comorbilidades Charlson/Elixhauser | `comorbidity` | `install.packages("comorbidity")` |
+| Tablas interactivas GT | `gt` | `install.packages("gt")` |
+| API CIE-11 OMS | `httr2` | `install.packages("httr2")` |
+| Leer archivos Excel MINSAL | `readxl` | `install.packages("readxl")` |
+
+## Requisitos del Sistema
+
+### Windows
+
+No requiere dependencias adicionales. La instalacion funciona directamente.
+
+### macOS
+
+Instalar Xcode Command Line Tools:
+
+```bash
+xcode-select --install
+```
+
+### Linux (Ubuntu/Debian)
+
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+  r-base-dev \
+  libcurl4-openssl-dev \
+  libssl-dev \
+  libxml2-dev
+```
+
+### Linux (Fedora/RHEL/CentOS)
+
+```bash
+sudo dnf install -y \
+  R-devel \
+  libcurl-devel \
+  openssl-devel \
+  libxml2-devel
+```
+
+## Configuracion de API CIE-11 (Opcional)
+Para usar `cie11_search()` y acceder a la clasificacion internacional CIE-11
+de la OMS, necesitas credenciales gratuitas.
+
+### Paso 1: Obtener Credenciales
+
+1. Visita <https://icd.who.int/icdapi>
+2. Registrate con tu email (proceso gratuito)
+3. Obtendras un `Client ID` y `Client Secret`
+
+### Paso 2: Configurar Variables de Entorno
+
+**Opcion A: Archivo .Renviron (recomendado para uso permanente)**
+
+Crea o edita el archivo `~/.Renviron`:
+
+```{r}
+# Abrir archivo .Renviron para editar
+usethis::edit_r_environ()
+```
+
+Agrega la linea:
+
+```
+ICD_API_KEY=tu_client_id:tu_client_secret
+```
+
+Reinicia R para que tome efecto.
+
+**Opcion B: En cada sesion (temporal)**
+
+```{r}
+Sys.setenv(ICD_API_KEY = "tu_client_id:tu_client_secret")
+```
+
+### Paso 3: Verificar Configuracion
+
+```{r}
+# Verificar que la API key esta configurada
+Sys.getenv("ICD_API_KEY")
+
+# Probar busqueda CIE-11
+library(ciecl)
+cie11_search("diabetes")
+```
+
+## Cache SQLite
+
+El paquete usa SQLite para almacenar y buscar codigos CIE-10 de forma eficiente.
+La base de datos se crea automaticamente en:
+
+```{r}
+# Ver ubicacion del cache
+tools::R_user_dir("ciecl", "data")
+```
+
+### Limpiar Cache
+
+Si necesitas forzar una reconstruccion de la base de datos:
+
+```{r}
+library(ciecl)
+cie10_clear_cache()
+```
+
+## Verificar Instalacion
+
+```{r}
+library(ciecl)
+
+# Verificar que el paquete carga correctamente
+packageVersion("ciecl")
+
+# Verificar acceso al dataset
+nrow(cie10_cl)  # Debe retornar 39873
+
+# Probar busqueda basica
+cie_lookup("E11.0")
+
+# Probar busqueda fuzzy
+cie_search("diabetes")
+```
+
+## Problemas Comunes
+
+### Error: "package 'ciecl' is not available"
+
+Asegurate de instalar desde GitHub, no desde CRAN (aun no esta disponible):
+
+```{r}
+pak::pak("RodoTasso/ciecl")
+```
+
+### Error de compilacion en Linux
+
+Instala las dependencias del sistema mencionadas arriba.
+
+### API CIE-11 no funciona
+
+1. Verifica que `httr2` esta instalado: `install.packages("httr2")`
+2. Verifica que la API key esta configurada: `Sys.getenv("ICD_API_KEY")`
+3. Verifica conexion a internet
+
+### Cache corrupto
+
+Limpia el cache y reinicia R:
+
+```{r}
+ciecl::cie10_clear_cache()
+```
+
+## Soporte
+
+- Reportar problemas: <https://github.com/RodoTasso/ciecl/issues>
+- Documentacion: <https://github.com/RodoTasso/ciecl>

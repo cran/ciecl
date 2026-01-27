@@ -1,0 +1,17 @@
+citHeader("Para citar el paquete ciecl en publicaciones, usar:")
+
+bibentry(
+  bibtype = "Manual",
+  title = "ciecl: Clasificacion Internacional de Enfermedades CIE-10/11 para Chile",
+  author = "Rodolfo Tasso Suazo",
+  year = 2025,
+  note = "R package version 0.1.0 (BETA). Datos: MINSAL/DEIS v2018",
+  url = "https://github.com/RodoTasso/ciecl",
+  textVersion = paste(
+    "Tasso Suazo R (2025).",
+    "ciecl: Clasificacion Internacional de Enfermedades CIE-10/11 para Chile.",
+    "R package version 0.1.0 (BETA).",
+    "Datos: Centro FIC Chile DEIS MINSAL.",
+    "https://github.com/RodoTasso/ciecl"
+  )
+)

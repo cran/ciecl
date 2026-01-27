@@ -1,0 +1,177 @@
+---
+title: "Soporte de Idiomas e Internacionalizacion"
+author: "Rodolfo Tasso Suazo"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Soporte de Idiomas e Internacionalizacion}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Idiomas Soportados
+
+El paquete `ciecl` soporta busquedas en multiples idiomas:
+
+| Funcion | Idioma Dataset | Idioma Busqueda | Notas |
+|---------|----------------|-----------------|-------|
+| `cie_lookup()` | Espanol (Chile) | - | Busqueda por codigo, idioma no aplica |
+| `cie_search()` | Espanol (Chile) | Espanol | Descripciones en espanol chileno |
+| `cie11_search()` | Espanol/Ingles | Espanol/Ingles | Configurable via parametro `lang` |
+| `cie10_sql()` | Espanol (Chile) | SQL | Descripciones en espanol |
+
+## Dataset CIE-10 Chile (Espanol)
+
+El dataset `cie10_cl` contiene **39,873 codigos** con descripciones en espanol
+de Chile, basado en el catalogo oficial MINSAL/DEIS v2018.
+
+```{r}
+library(ciecl)
+
+# Ver estructura del dataset
+head(cie10_cl)
+#> # A tibble: 6 x 8
+#>   codigo descripcion                    categoria inclusion exclusion capitulo
+#>   <chr>  <chr>                          <chr>     <chr>     <chr>     <chr>
+#> 1 A00    Colera                         A00       ...       ...       01
+#> 2 A00.0  Colera debido a Vibrio...      A00       ...       ...       01
+```
+
+### Caracteristicas del Espanol Chileno
+
+- **Tildes preservadas**: "Neumonia", "Rinon", "Corazon"
+- **Terminologia local**: Usa terminos medicos comunes en Chile
+- **Sin anglicanismos**: Traducciones oficiales MINSAL
+
+## Busqueda Tolerante a Tildes
+
+La funcion `cie_search()` normaliza automaticamente tildes, permitiendo
+buscar sin preocuparse por acentos:
+
+```{r}
+# Todas estas busquedas encuentran "neumonia"
+cie_search("neumonia")
+cie_search("neumonía")
+cie_search("NEUMONIA")
+
+# Funciona con n
+cie_search("rinon")     # Encuentra "rinon"
+cie_search("espanol")   # Encuentra terminos con "n"
+```
+
+## Siglas Medicas Chilenas
+
+El paquete incluye **88 siglas medicas** comunes en el contexto clinico chileno:
+
+```{r}
+# Ver todas las siglas disponibles
+cie_siglas()
+
+# Filtrar por categoria
+cie_siglas("cardiovascular")
+cie_siglas("respiratoria")
+cie_siglas("oncologica")
+
+# Buscar usando siglas
+cie_search("IAM")   # Infarto Agudo del Miocardio
+cie_search("EPOC")  # Enfermedad Pulmonar Obstructiva Cronica
+cie_search("DM2")   # Diabetes Mellitus tipo 2
+cie_search("HTA")   # Hipertension Arterial
+cie_search("TBC")   # Tuberculosis
+```
+
+### Categorias de Siglas
+
+| Categoria | Ejemplos | Cantidad |
+|-----------|----------|----------|
+| Cardiovascular | IAM, HTA, ACV, FA, ICC | 15 |
+| Respiratoria | TBC, EPOC, NAC, SDRA | 9 |
+| Metabolica | DM, DM1, DM2, ERC, IRC | 7 |
+| Gastrointestinal | HDA, HDB, RGE, DHC | 9 |
+| Infecciosa | VIH, ITU, ITS, sepsis | 8 |
+| Oncologica | CA, LMA, LMC, LLA, LLC | 10 |
+| Neurologica | TEC, EPI, EM, ELA | 8 |
+| Psiquiatrica | TDAH, TOC, TAG, TEPT | 6 |
+| Otras | Reumatologicas, pediatricas, gineco-obstetricas | 16 |
+
+## API CIE-11 Multilingue
+
+La funcion `cie11_search()` permite buscar en la clasificacion CIE-11 de la OMS
+en espanol o ingles:
+
+```{r}
+# Busqueda en espanol (default)
+cie11_search("diabetes mellitus", lang = "es")
+
+# Busqueda en ingles
+cie11_search("diabetes mellitus", lang = "en")
+
+# Comparar resultados
+es <- cie11_search("infarto", lang = "es")
+en <- cie11_search("infarction", lang = "en")
+```
+
+### Configuracion de Idioma API
+
+El parametro `lang` acepta:
+
+- `"es"` - Espanol (default)
+- `"en"` - Ingles
+
+```{r}
+# Configurar idioma por defecto en sesion
+options(ciecl.lang = "es")
+
+# Ahora todas las busquedas CIE-11 usaran espanol
+cie11_search("neumonia")
+```
+
+## Encoding y Caracteres Especiales
+
+### UTF-8 por Defecto
+
+El paquete usa encoding UTF-8 para garantizar compatibilidad con caracteres
+especiales del espanol:
+
+```{r}
+# Verificar encoding del dataset
+Encoding(cie10_cl$descripcion[1])
+#> [1] "UTF-8"
+```
+
+### Caracteres Especiales Soportados
+
+| Caracter | Ejemplo | Soporte |
+|----------|---------|---------|
+| Tildes | a, e, i, o, u | Completo |
+| Ene | n | Completo |
+| Dieresis | u | Completo |
+| Simbolos medicos | daga, cruz | Preservados en dataset |
+
+## Contribuir Traducciones
+
+Si deseas contribuir traducciones o mejorar el soporte de idiomas:
+
+1. Abre un issue en <https://github.com/RodoTasso/ciecl/issues>
+2. Describe el idioma o mejora propuesta
+3. Incluye ejemplos de uso
+
+### Traducciones Pendientes
+
+- [ ] Portugues (Brasil) - Dataset CID-10
+- [ ] Ingles - Dataset ICD-10-CM (USA)
+- [ ] Frances - Dataset CIM-10
+
+## Referencias
+
+- **CIE-10 Chile**: <https://deis.minsal.cl/centrofic/>
+- **CIE-11 OMS**: <https://icd.who.int/>
+- **API CIE-11**: <https://icd.who.int/icdapi>
