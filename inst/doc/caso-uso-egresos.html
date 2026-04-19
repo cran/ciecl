@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Rodolfo Tasso Suazo" />
+
+<meta name="date" content="2026-04-18" />
+
+<title>Caso de uso: Egresos hospitalarios con ciecl</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Caso de uso: Egresos hospitalarios con
+ciecl</h1>
+<h4 class="author">Rodolfo Tasso Suazo</h4>
+<h4 class="date">2026-04-18</h4>
+
+
+
+<p>Los registros de egresos hospitalarios en Chile (fuente DEIS)
+almacenan diagnosticos en formato CIE-10 sin punto (<code>J189</code>,
+<code>O800</code>) y en algunos casos con sufijo <code>X</code>
+(<code>I10X</code>, <code>N40X</code>) para indicar categorias sin
+subcategoria adicional. Esta convencion de codificacion dificulta unir
+los datos con catalogos externos que usan el formato normalizado con
+punto (<code>J18.9</code>, <code>O80.0</code>).</p>
+<p>Esta vignette reproduce el flujo utilizado en investigacion con datos
+DEIS: obtener descripciones CIE-10 para toda la base, unirlas con los
+registros originales, y generar perfiles de diagnostico.</p>
+<div id="datos-de-ejemplo" class="section level2">
+<h2>Datos de ejemplo</h2>
+<p>Simulamos una base con la estructura tipica de los egresos
+hospitalarios DEIS. Las columnas <code>DIAG1</code> y <code>ANO</code>
+imitan el formato original:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>egresos <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="at">ID_EGRESO =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">200</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">ANO       =</span> <span class="fu">sample</span>(<span class="dv">2018</span><span class="sc">:</span><span class="dv">2022</span>, <span class="dv">200</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">DIAG1     =</span> <span class="fu">sample</span>(</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>    <span class="fu">c</span>(</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>      <span class="co"># Codigos frecuentes en egresos DEIS (sin punto, formato original)</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>      <span class="st">&quot;J189&quot;</span>, <span class="st">&quot;O800&quot;</span>, <span class="st">&quot;Z380&quot;</span>, <span class="st">&quot;K359&quot;</span>, <span class="st">&quot;N390&quot;</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>      <span class="st">&quot;I10X&quot;</span>, <span class="st">&quot;J449&quot;</span>, <span class="st">&quot;E119&quot;</span>, <span class="st">&quot;O829&quot;</span>, <span class="st">&quot;J069&quot;</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>      <span class="st">&quot;K922&quot;</span>, <span class="st">&quot;N185&quot;</span>, <span class="st">&quot;I509&quot;</span>, <span class="st">&quot;C509&quot;</span>, <span class="st">&quot;A099&quot;</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>      <span class="co"># Algunos con sufijo X (convencion DEIS)</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>      <span class="st">&quot;N40X&quot;</span>, <span class="st">&quot;K800&quot;</span>, <span class="st">&quot;I259&quot;</span>, <span class="st">&quot;J180&quot;</span>, <span class="st">&quot;E149&quot;</span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>    ),</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>    <span class="at">size    =</span> <span class="dv">200</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>    <span class="at">replace =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>    <span class="at">prob    =</span> <span class="fu">c</span>(</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>      <span class="fl">0.12</span>, <span class="fl">0.10</span>, <span class="fl">0.09</span>, <span class="fl">0.07</span>, <span class="fl">0.06</span>,</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>      <span class="fl">0.08</span>, <span class="fl">0.06</span>, <span class="fl">0.07</span>, <span class="fl">0.05</span>, <span class="fl">0.04</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>      <span class="fl">0.04</span>, <span class="fl">0.03</span>, <span class="fl">0.05</span>, <span class="fl">0.03</span>, <span class="fl">0.03</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>      <span class="fl">0.03</span>, <span class="fl">0.03</span>, <span class="fl">0.04</span>, <span class="fl">0.03</span>, <span class="fl">0.05</span></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>    )</span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>  ),</span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>  <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>)</span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Registros totales:&quot;</span>, <span class="fu">nrow</span>(egresos), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a><span class="co">#&gt; Registros totales: 200</span></span>
+<span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Codigos unicos:&quot;</span>, <span class="fu">length</span>(<span class="fu">unique</span>(egresos<span class="sc">$</span>DIAG1)), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a><span class="co">#&gt; Codigos unicos: 20</span></span>
+<span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Periodo:&quot;</span>, <span class="fu">min</span>(egresos<span class="sc">$</span>ANO), <span class="st">&quot;-&quot;</span>, <span class="fu">max</span>(egresos<span class="sc">$</span>ANO), <span class="st">&quot;</span><span class="sc">\n\n</span><span class="st">&quot;</span>)</span>
+<span id="cb1-32"><a href="#cb1-32" tabindex="-1"></a><span class="co">#&gt; Periodo: 2018 - 2022</span></span>
+<span id="cb1-33"><a href="#cb1-33" tabindex="-1"></a><span class="fu">head</span>(egresos)</span>
+<span id="cb1-34"><a href="#cb1-34" tabindex="-1"></a><span class="co">#&gt;   ID_EGRESO  ANO DIAG1</span></span>
+<span id="cb1-35"><a href="#cb1-35" tabindex="-1"></a><span class="co">#&gt; 1         1 2018  I10X</span></span>
+<span id="cb1-36"><a href="#cb1-36" tabindex="-1"></a><span class="co">#&gt; 2         2 2022  I10X</span></span>
+<span id="cb1-37"><a href="#cb1-37" tabindex="-1"></a><span class="co">#&gt; 3         3 2018  J189</span></span>
+<span id="cb1-38"><a href="#cb1-38" tabindex="-1"></a><span class="co">#&gt; 4         4 2018  N40X</span></span>
+<span id="cb1-39"><a href="#cb1-39" tabindex="-1"></a><span class="co">#&gt; 5         5 2019  J449</span></span>
+<span id="cb1-40"><a href="#cb1-40" tabindex="-1"></a><span class="co">#&gt; 6         6 2021  J189</span></span></code></pre></div>
+</div>
+<div id="obtener-descripciones-cie-10" class="section level2">
+<h2>1. Obtener descripciones CIE-10</h2>
+<p>Filtramos registros validos y usamos <code>cie_lookup()</code> con
+<code>normalizar = TRUE</code> para procesar todos los codigos unicos en
+una sola llamada vectorizada. El argumento
+<code>normalizar = TRUE</code> acepta los codigos tal como vienen del
+sistema: sin punto, con sufijo <code>X</code>, en cualquier
+capitalizacion.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Filtrar registros validos (sin NA en diagnostico)</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>datos_filtrados <span class="ot">&lt;-</span> egresos <span class="sc">%&gt;%</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(DIAG1))</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co"># Codigos unicos a procesar</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>codigos_unicos <span class="ot">&lt;-</span> <span class="fu">unique</span>(datos_filtrados<span class="sc">$</span>DIAG1)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Codigos unicos a procesar:&quot;</span>, <span class="fu">length</span>(codigos_unicos), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt; Codigos unicos a procesar: 20</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co"># Busqueda vectorizada con cie_lookup</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>inicio <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>resultado_ciecl <span class="ot">&lt;-</span> <span class="fu">cie_lookup</span>(</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  <span class="at">codigo             =</span> codigos_unicos,</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  <span class="at">normalizar         =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>  <span class="at">descripcion_completa =</span> <span class="cn">TRUE</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>)</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>tiempo <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">as.numeric</span>(<span class="fu">difftime</span>(<span class="fu">Sys.time</span>(), inicio, <span class="at">units =</span> <span class="st">&quot;secs&quot;</span>)), <span class="dv">2</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Codigos encontrados:&quot;</span>, <span class="fu">nrow</span>(resultado_ciecl), <span class="st">&quot;de&quot;</span>, <span class="fu">length</span>(codigos_unicos), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co">#&gt; Codigos encontrados: 19 de 20</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Tiempo de busqueda:&quot;</span>, tiempo, <span class="st">&quot;segundos</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co">#&gt; Tiempo de busqueda: 0.03 segundos</span></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Tasa de exito:&quot;</span>, <span class="fu">round</span>(<span class="fu">nrow</span>(resultado_ciecl) <span class="sc">/</span> <span class="fu">length</span>(codigos_unicos) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>), <span class="st">&quot;%</span><span class="sc">\n\n</span><span class="st">&quot;</span>)</span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co">#&gt; Tasa de exito: 95 %</span></span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co"># Muestra de resultados</span></span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="fu">head</span>(resultado_ciecl[, <span class="fu">c</span>(<span class="st">&quot;codigo&quot;</span>, <span class="st">&quot;descripcion&quot;</span>)], <span class="dv">5</span>)</span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 2</span></span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                                                    </span></span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;                                                          </span></span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a><span class="co">#&gt; 1 A09.9  Gastroenteritis y colitis de origen no especificado            </span></span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a><span class="co">#&gt; 2 C50.9  Tumor maligno de la mama, parte no especificada                </span></span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a><span class="co">#&gt; 3 E11.9  Diabetes mellitus tipo 2 sin complicaciones                    </span></span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a><span class="co">#&gt; 4 E14.9  Diabetes mellitus, no especificada, sin mención de complicación</span></span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a><span class="co">#&gt; 5 I10    Hipertensión esencial (primaria)</span></span></code></pre></div>
+</div>
+<div id="unir-descripciones-con-la-base-de-egresos" class="section level2">
+<h2>2. Unir descripciones con la base de egresos</h2>
+<p>Los codigos en la base DEIS no tienen punto (<code>J189</code>), pero
+<code>cie_lookup()</code> devuelve los codigos en formato normalizado
+(<code>J18.9</code>). Para el join es necesario quitar el punto y ademas
+eliminar el sufijo <code>X</code> que algunos codigos tienen en la base
+original:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Tabla de lookup: codigo sin punto -&gt; descripcion completa</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co"># cie_lookup() devuelve con punto (J18.9), la BBDD tiene sin punto (J189)</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>tabla_lookup <span class="ot">&lt;-</span> resultado_ciecl <span class="sc">%&gt;%</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>    <span class="at">codigo_sin_punto =</span> <span class="fu">gsub</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">.&quot;</span>, <span class="st">&quot;&quot;</span>, codigo),</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>    <span class="at">DIAG_COMPLETO    =</span> <span class="fu">paste0</span>(codigo, <span class="st">&quot; - &quot;</span>, descripcion)</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="fu">select</span>(codigo_sin_punto, DIAG_COMPLETO)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co"># Funcion para normalizar el codigo de la BBDD antes del join:</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co"># 1. Quitar puntos si los hubiera</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co"># 2. Quitar sufijo X final (I10X -&gt; I10, N40X -&gt; N40)</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>normalizar_codigo_bbdd <span class="ot">&lt;-</span> <span class="cf">function</span>(codigo) {</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  codigo <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">.&quot;</span>, <span class="st">&quot;&quot;</span>, codigo)</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  codigo <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;X$&quot;</span>, <span class="st">&quot;&quot;</span>, codigo)</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  <span class="fu">return</span>(codigo)</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>}</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co"># Unir con los datos originales</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>datos_con_desc <span class="ot">&lt;-</span> datos_filtrados <span class="sc">%&gt;%</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">codigo_busqueda =</span> <span class="fu">normalizar_codigo_bbdd</span>(DIAG1)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>  <span class="fu">left_join</span>(tabla_lookup, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;codigo_busqueda&quot;</span> <span class="ot">=</span> <span class="st">&quot;codigo_sin_punto&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>    <span class="at">DIAG_COMPLETO =</span> <span class="fu">if_else</span>(<span class="fu">is.na</span>(DIAG_COMPLETO), DIAG1, DIAG_COMPLETO)</span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>codigo_busqueda)</span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co"># Verificar resultado</span></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a>n_con_desc <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">grepl</span>(<span class="st">&quot; - &quot;</span>, datos_con_desc<span class="sc">$</span>DIAG_COMPLETO), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a>pct_exito  <span class="ot">&lt;-</span> <span class="fu">round</span>(n_con_desc <span class="sc">/</span> <span class="fu">nrow</span>(datos_con_desc) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>)</span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a></span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Registros con descripcion CIE-10:&quot;</span>, n_con_desc, <span class="st">&quot;de&quot;</span>, <span class="fu">nrow</span>(datos_con_desc), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="co">#&gt; Registros con descripcion CIE-10: 184 de 200</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Tasa de exito:&quot;</span>, pct_exito, <span class="st">&quot;%</span><span class="sc">\n\n</span><span class="st">&quot;</span>)</span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="co">#&gt; Tasa de exito: 92 %</span></span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="co"># Ejemplos de diagnosticos procesados</span></span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a>datos_con_desc <span class="sc">%&gt;%</span></span>
+<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a>  <span class="fu">select</span>(DIAG1, DIAG_COMPLETO) <span class="sc">%&gt;%</span></span>
+<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span>
+<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a><span class="co">#&gt;    DIAG1</span></span>
+<span id="cb3-43"><a href="#cb3-43" tabindex="-1"></a><span class="co">#&gt; 1   I10X</span></span>
+<span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a><span class="co">#&gt; 2   J189</span></span>
+<span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a><span class="co">#&gt; 3   N40X</span></span>
+<span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a><span class="co">#&gt; 4   J449</span></span>
+<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a><span class="co">#&gt; 5   Z380</span></span>
+<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a><span class="co">#&gt; 6   J180</span></span>
+<span id="cb3-49"><a href="#cb3-49" tabindex="-1"></a><span class="co">#&gt; 7   E149</span></span>
+<span id="cb3-50"><a href="#cb3-50" tabindex="-1"></a><span class="co">#&gt; 8   N185</span></span>
+<span id="cb3-51"><a href="#cb3-51" tabindex="-1"></a><span class="co">#&gt; 9   E119</span></span>
+<span id="cb3-52"><a href="#cb3-52" tabindex="-1"></a><span class="co">#&gt; 10  K359</span></span>
+<span id="cb3-53"><a href="#cb3-53" tabindex="-1"></a><span class="co">#&gt;                                                              DIAG_COMPLETO</span></span>
+<span id="cb3-54"><a href="#cb3-54" tabindex="-1"></a><span class="co">#&gt; 1                                   I10 - Hipertensión esencial (primaria)</span></span>
+<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a><span class="co">#&gt; 2                                        J18.9 - Neumonía, no especificada</span></span>
+<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a><span class="co">#&gt; 3                                         N40 - Hiperplasia de la próstata</span></span>
+<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a><span class="co">#&gt; 4         J44.9 - Enfermedad pulmonar obstructiva crónica, no especificada</span></span>
+<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a><span class="co">#&gt; 5                               Z38.0 - Producto único, nacido en hospital</span></span>
+<span id="cb3-59"><a href="#cb3-59" tabindex="-1"></a><span class="co">#&gt; 6                                  J18.0 - Bronconeumonía, no especificada</span></span>
+<span id="cb3-60"><a href="#cb3-60" tabindex="-1"></a><span class="co">#&gt; 7  E14.9 - Diabetes mellitus, no especificada, sin mención de complicación</span></span>
+<span id="cb3-61"><a href="#cb3-61" tabindex="-1"></a><span class="co">#&gt; 8                              N18.5 - Enfermedad renal crónica, estadio 5</span></span>
+<span id="cb3-62"><a href="#cb3-62" tabindex="-1"></a><span class="co">#&gt; 9                      E11.9 - Diabetes mellitus tipo 2 sin complicaciones</span></span>
+<span id="cb3-63"><a href="#cb3-63" tabindex="-1"></a><span class="co">#&gt; 10                                                                    K359</span></span></code></pre></div>
+</div>
+<div id="perfil-de-diagnosticos" class="section level2">
+<h2>3. Perfil de diagnosticos</h2>
+<p>Con las descripciones incorporadas calculamos la distribucion de
+diagnosticos y la proporcion que representa cada uno sobre el total de
+egresos:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>perfil_diag <span class="ot">&lt;-</span> datos_con_desc <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">grepl</span>(<span class="st">&quot; - &quot;</span>, DIAG_COMPLETO)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="fu">count</span>(DIAG_COMPLETO, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>    <span class="at">pct       =</span> <span class="fu">round</span>(n <span class="sc">/</span> <span class="fu">sum</span>(n) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>    <span class="at">pct_acum  =</span> <span class="fu">cumsum</span>(pct)</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  )</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Top 10 diagnosticos:</span><span class="sc">\n\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; Top 10 diagnosticos:</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="fu">head</span>(perfil_diag, <span class="dv">10</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;                                                              DIAG_COMPLETO  n</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt; 1                                        J18.9 - Neumonía, no especificada 29</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt; 2         O80.0 - Parto único espontáneo, presentación cefálica de vértice 19</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 3                      E11.9 - Diabetes mellitus tipo 2 sin complicaciones 14</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; 4         J44.9 - Enfermedad pulmonar obstructiva crónica, no especificada 14</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; 5                                   I10 - Hipertensión esencial (primaria) 13</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; 6                               Z38.0 - Producto único, nacido en hospital 13</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; 7               N39.0 - Infección de vías urinarias, sitio no especificado 11</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; 8  E14.9 - Diabetes mellitus, no especificada, sin mención de complicación 10</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; 9                              N18.5 - Enfermedad renal crónica, estadio 5  9</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt; 10       I25.9 - Enfermedad isquémica crónica del corazón, no especificada  8</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt;     pct pct_acum</span></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co">#&gt; 1  15.8     15.8</span></span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="co">#&gt; 2  10.3     26.1</span></span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt; 3   7.6     33.7</span></span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; 4   7.6     41.3</span></span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; 5   7.1     48.4</span></span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a><span class="co">#&gt; 6   7.1     55.5</span></span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a><span class="co">#&gt; 7   6.0     61.5</span></span>
+<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a><span class="co">#&gt; 8   5.4     66.9</span></span>
+<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a><span class="co">#&gt; 9   4.9     71.8</span></span>
+<span id="cb4-33"><a href="#cb4-33" tabindex="-1"></a><span class="co">#&gt; 10  4.3     76.1</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>top10_pct <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">head</span>(perfil_diag, <span class="dv">10</span>)<span class="sc">$</span>pct)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Los 10 diagnosticos mas frecuentes representan el&quot;</span>, top10_pct, <span class="st">&quot;% del total de egresos</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; Los 10 diagnosticos mas frecuentes representan el 76.1 % del total de egresos</span></span></code></pre></div>
+</div>
+<div id="busqueda-por-texto" class="section level2">
+<h2>4. Busqueda por texto</h2>
+<p>Cuando no se conoce el codigo exacto, <code>cie_search()</code>
+encuentra diagnosticos por descripcion textual con tolerancia a errores
+tipograficos:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Terminos clinicos comunes en egresos (con y sin typos)</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>terminos <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;neumonia&quot;</span>, <span class="st">&quot;diabetis&quot;</span>, <span class="st">&quot;hipertension&quot;</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="cf">for</span> (termino <span class="cf">in</span> terminos) {</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Buscando:&quot;</span>, termino, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">cie_search</span>(termino, <span class="at">threshold =</span> <span class="fl">0.70</span>, <span class="at">max_results =</span> <span class="dv">3</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(res) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>    <span class="fu">print</span>(res[, <span class="fu">c</span>(<span class="st">&quot;codigo&quot;</span>, <span class="st">&quot;descripcion&quot;</span>)])</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  }</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>}</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; Buscando: neumonia </span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 2</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                                                          </span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;                                                                </span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; 1 B01.2  Neumonía debida a varicela (J17.1*)                                  </span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; 2 B05.2  Sarampión complicado con neumonía (J17.1*)                           </span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; 3 B20.6  Enfermedad por VIH, resultante en neumonía por Pneumocystis jirovecii</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; Buscando: diabetis </span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 2</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                              </span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;                                    </span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; 1 E10    Diabetes mellitus insulinodependiente    </span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt; 2 E10.0  Diabetes mellitus tipo 1 con coma        </span></span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt; 3 E10.1  Diabetes mellitus tipo 1 con cetoacidosis</span></span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt; Buscando: hipertension </span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 2</span></span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                      </span></span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;                            </span></span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt; 1 G93.2  Hipertensión intracraneal benigna</span></span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt; 2 I10    Hipertensión esencial (primaria) </span></span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; 3 I15    Hipertensión secundaria</span></span></code></pre></div>
+</div>
+<div id="validacion-de-codigos" class="section level2">
+<h2>5. Validacion de codigos</h2>
+<p>Antes de procesar una base conviene identificar codigos que no
+corresponden a ningun diagnostico valido en el catalogo CIE-10:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>validos <span class="ot">&lt;-</span> <span class="fu">cie_validate_vector</span>(codigos_unicos)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Codigos validos:  &quot;</span>, <span class="fu">sum</span>(validos), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; Codigos validos:   20</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Codigos invalidos:&quot;</span>, <span class="fu">sum</span>(<span class="sc">!</span>validos), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; Codigos invalidos: 0</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(<span class="sc">!</span>validos)) {</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Codigos no reconocidos:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="fu">print</span>(codigos_unicos[<span class="sc">!</span>validos])</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+<div id="fuente-de-datos" class="section level2">
+<h2>Fuente de datos</h2>
+<ul>
+<li>Catalogo CIE-10 Chile: Centro FIC DEIS <a href="https://deis.minsal.cl/centrofic/" class="uri">https://deis.minsal.cl/centrofic/</a></li>
+<li>Repositorio: <a href="https://github.com/RodoTasso/ciecl" class="uri">https://github.com/RodoTasso/ciecl</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

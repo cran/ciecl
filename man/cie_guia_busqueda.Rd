@@ -7,7 +7,7 @@
 cie_guia_busqueda()
 }
 \value{
-data.frame con guia de uso
+tibble con guia comparativa de funciones de busqueda
 }
 \description{
 Muestra tabla comparativa de cuando usar cada funcion de busqueda.
@@ -15,3 +15,13 @@ Muestra tabla comparativa de cuando usar cada funcion de busqueda.
 \examples{
 cie_guia_busqueda()
 }
+\seealso{
+\code{\link{cie_search}},
+\code{\link{cie_lookup}}, \code{\link{cie_siglas}}
+
+Other busqueda: 
+\code{\link{cie_lookup}()},
+\code{\link{cie_search}()},
+\code{\link{cie_siglas}()}
+}
+\concept{busqueda}

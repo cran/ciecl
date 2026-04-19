@@ -9,7 +9,8 @@ cie10_sql(query, close = TRUE)
 \arguments{
 \item{query}{String SQL valido SQLite (SELECT/WHERE/JOIN)}
 
-\item{close}{Logical, cerrar conexion post-query (default TRUE)}
+\item{close}{Deprecated. Ignorado — la conexion es pooled y se
+gestiona automaticamente. Sera eliminado en una version futura.}
 }
 \value{
 tibble resultado query
@@ -18,17 +19,20 @@ tibble resultado query
 Ejecutar consultas SQL sobre CIE-10 Chile
 }
 \examples{
-\donttest{
 # Buscar diabetes
 cie10_sql("SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE 'E11\%'")
 
+\donttest{
 # Contar por capitulo
 cie10_sql("SELECT capitulo, COUNT(*) n FROM cie10 GROUP BY capitulo")
 }
+}
+\seealso{
+\code{\link{cie10_clear_cache}}, \code{\link{cie10_disconnect}},
+\code{\link{cie_search}}
 
-# Join con datos pacientes (externo)
-\dontrun{
-cie10_sql("SELECT p.id, c.descripcion
-           FROM pacientes p JOIN cie10 c ON p.codigo = c.codigo")
+Other sql: 
+\code{\link{cie10_clear_cache}()},
+\code{\link{cie10_disconnect}()}
 }
-}
+\concept{sql}

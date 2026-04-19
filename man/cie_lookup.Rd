@@ -14,18 +14,24 @@ cie_lookup(
 )
 }
 \arguments{
-\item{codigo}{Character vector de codigos (ej. "E11", "E11.0", c("E11.0", "Z00"))
-o rango (ej. "E10-E14"). Acepta vectores de multiples codigos.
-Soporta formatos: con punto (E11.0), sin punto (E110), o solo categoria (E11).}
+\item{codigo}{Character vector de codigos
+(ej. "E11", "E11.0", c("E11.0", "Z00"))
+o rango (ej. "E10-E14"). Acepta vectores.
+Soporta formatos: con punto (E11.0),
+sin punto (E110), o solo categoria (E11).}
 
 \item{expandir}{Logical, expandir jerarquia completa (default FALSE)}
 
-\item{normalizar}{Logical, normalizar formato de codigos automaticamente (default TRUE)}
+\item{normalizar}{Logical, normalizar formato de codigos
+automaticamente (default TRUE)}
 
-\item{descripcion_completa}{Logical, agregar columna descripcion_completa con formato "CODIGO - DESCRIPCION" (default FALSE)}
+\item{descripcion_completa}{Logical, agregar columna descripcion_completa
+con formato "CODIGO - DESCRIPCION" (default FALSE)}
 
-\item{extract}{Logical, extraer codigo CIE-10 de texto con prefijos/sufijos (default FALSE).
-IMPORTANTE: Solo usar con codigo ESCALAR (longitud 1). Ejemplo: "CIE:E11.0" -> "E11.0", "E11.0-confirmado" -> "E11.0".
+\item{extract}{Logical, extraer codigo CIE-10 de texto con
+prefijos/sufijos (default FALSE).
+IMPORTANTE: Solo usar con codigo ESCALAR (longitud 1).
+Ejemplo: "CIE:E11.0" -> "E11.0", "E11.0-confirmado" -> "E11.0".
 Para vectores multiples usar extract=FALSE (default).}
 
 \item{check_siglas}{Logical, buscar siglas medicas comunes (default FALSE).
@@ -38,7 +44,10 @@ tibble con codigo(s) matcheado(s)
 Busqueda exacta por codigo CIE-10
 }
 \examples{
-cie_lookup("E11.0")       # Con punto
+# Busqueda directa por codigo
+cie_lookup("E11.0")
+
+\donttest{
 cie_lookup("E110")        # Sin punto
 cie_lookup("E11")         # Solo categoria
 cie_lookup("E11", expandir = TRUE)  # Todos E11.x
@@ -49,9 +58,18 @@ cie_lookup("E110", descripcion_completa = TRUE)
 # Extraer codigo de texto con ruido (solo codigo escalar)
 cie_lookup("CIE:E11.0", extract = TRUE)
 cie_lookup("E11.0-confirmado", extract = TRUE)
-# Nota: Para vectores multiples usar extract=FALSE (default)
 # Buscar por siglas medicas
 cie_lookup("IAM", check_siglas = TRUE)
 cie_lookup("DM2", check_siglas = TRUE)
-cie_lookup("EPOC", check_siglas = TRUE)
 }
+}
+\seealso{
+\code{\link{cie_search}},
+\code{\link{cie_normalizar}}, \code{\link{cie_expand}}
+
+Other busqueda: 
+\code{\link{cie_guia_busqueda}()},
+\code{\link{cie_search}()},
+\code{\link{cie_siglas}()}
+}
+\concept{busqueda}

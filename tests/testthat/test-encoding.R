@@ -1,9 +1,9 @@
 # test-encoding.R
 # Pruebas de compatibilidad con diferentes encodings y caracteres especiales
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE ENCODING PARA CARACTERES ESPANOLES
-# ==============================================================================
+# ============================================================
 
 test_that("cie_search maneja caracteres con tildes", {
   skip_on_cran()
@@ -56,9 +56,9 @@ test_that("cie_lookup maneja codigos sin importar encoding", {
   expect_s3_class(resultado, "tbl_df")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE CARACTERES ESPECIALES
-# ==============================================================================
+# ============================================================
 
 test_that("cie_search maneja parentesis y corchetes", {
   skip_on_cran()
@@ -118,9 +118,9 @@ test_that("cie10_sql maneja comillas en queries", {
   expect_s3_class(resultado2, "tbl_df")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE UNICODE
-# ==============================================================================
+# ============================================================
 
 test_that("cie_search maneja caracteres unicode validos", {
   skip_on_cran()
@@ -143,9 +143,9 @@ test_that("base de datos mantiene integridad unicode", {
   expect_gt(resultado2$n, 5000)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE CONSISTENCIA ENTRE PLATAFORMAS
-# ==============================================================================
+# ============================================================
 
 test_that("cie_normalizar es consistente con diferentes inputs", {
   skip_on_cran()
@@ -175,9 +175,9 @@ test_that("cie_lookup es case-insensitive", {
   expect_equal(resultado_may$codigo, resultado_mix$codigo)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE LOCALE
-# ==============================================================================
+# ============================================================
 
 test_that("funciones operan independientemente del locale", {
   skip_on_cran()
@@ -199,9 +199,9 @@ test_that("funciones operan independientemente del locale", {
   )
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE COMPARACION STRING
-# ==============================================================================
+# ============================================================
 
 test_that("cie_search usa comparacion case-insensitive", {
   skip_on_cran()

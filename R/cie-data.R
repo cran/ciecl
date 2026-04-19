@@ -11,7 +11,7 @@ NULL
 #' Detecta columnas automaticamente para mayor robustez.
 #' 
 #' @param xls_path Ruta al archivo XLS descargado DEIS
-#' @return tibble con 39,873 codigos CIE-10 Chile limpios
+#' @return tibble con 39,877 codigos CIE-10 Chile limpios
 #' @keywords internal
 #' @noRd
 parsear_cie10_minsal <- function(xls_path) {
@@ -53,7 +53,9 @@ parsear_cie10_minsal <- function(xls_path) {
       codigo = dplyr::all_of(col_codigo[1]),
       descripcion = dplyr::all_of(col_desc[1]),
       categoria = dplyr::any_of(
-        names(raw)[stringr::str_detect(names(raw), "cat|tipo|categor[i\u00ed]a")]
+        names(raw)[stringr::str_detect(
+          names(raw), "cat|tipo|categor[i\u00ed]a"
+        )]
       ),
       inclusion = dplyr::any_of(
         names(raw)[stringr::str_detect(names(raw), "incl")]
@@ -76,12 +78,15 @@ parsear_cie10_minsal <- function(xls_path) {
 }
 
 #' Generar dataset cie10_cl.rda
-#' 
+#'
 #' @description
-#' EJECUTAR UNA VEZ para crear data/cie10_cl.rda desde XLS padre.
-#' Ruta automatica: busca en ../ o directorio actual
-#' 
-#' @param xls_path Ruta al archivo XLS (opcional, deteccion automatica)
+#' EJECUTAR UNA VEZ para crear data/cie10_cl.rda desde archivo DEIS.
+#' Deteccion automatica por prioridad: XLSX completo (39K+ codigos)
+#' vs XLS legado (~8K).
+#'
+#' @param archivo_path Ruta al archivo XLSX/XLS DEIS
+#'   (opcional, deteccion automatica).
+#'   Debe ser una ruta de confianza; no usar con input de usuarios finales.
 #' @return Invisible tibble with generated 'ICD-10' data.
 #' @examples
 #' \dontrun{
@@ -89,27 +94,29 @@ parsear_cie10_minsal <- function(xls_path) {
 #' generar_cie10_cl()
 #' }
 #' @keywords internal
-#' @export
-generar_cie10_cl <- function(xls_path = NULL) {
+#' @noRd
+generar_cie10_cl <- function(archivo_path = NULL) {
   # Verificar que usethis este instalado
   if (!requireNamespace("usethis", quietly = TRUE)) {
     stop("El paquete 'usethis' es necesario para generar el dataset.\n",
          "Inst\u00e1lalo con: install.packages('usethis')")
   }
-  
-  # Deteccion automatica si no se proporciona ruta
-  if (is.null(xls_path)) {
-    xls_parent <- normalizePath("../Lista-Tabular-CIE-10-1-1.xls", mustWork = FALSE)
-    xls_actual <- normalizePath("Lista-Tabular-CIE-10-1-1.xls", mustWork = FALSE)
-    
-    if (file.exists(xls_parent)) {
-      xls_path <- xls_parent
-    } else if (file.exists(xls_actual)) {
-      xls_path <- xls_actual
-    } else {
-      stop("XLS no encontrado. Proporcionar ruta con xls_path = '...'")
+
+  # Deteccion automatica si no se proporciona ruta (prioridad: XLSX > XLS)
+  if (is.null(archivo_path)) {
+    candidatos <- c(
+      normalizePath("../CIE-10 (1).xlsx", mustWork = FALSE),
+      normalizePath("CIE-10 (1).xlsx", mustWork = FALSE),
+      normalizePath("../Lista-Tabular-CIE-10-1-1.xls", mustWork = FALSE),
+      normalizePath("Lista-Tabular-CIE-10-1-1.xls", mustWork = FALSE)
+    )
+    existentes <- candidatos[file.exists(candidatos)]
+    if (length(existentes) == 0) {
+      stop("Archivo no encontrado. Proporcionar ruta con archivo_path = '...'")
     }
+    archivo_path <- existentes[1]
   }
+  xls_path <- archivo_path
   
   message("Parseando: ", xls_path)
   cie10_cl <- parsear_cie10_minsal(xls_path)
@@ -123,7 +130,7 @@ generar_cie10_cl <- function(xls_path = NULL) {
 
 #' Dataset CIE-10 Chile oficial MINSAL/DEIS v2018
 #'
-#' @format tibble con 39,873 filas (categorias y subcategorias):
+#' @format tibble con 39,877 filas (categorias y subcategorias):
 #' \describe{
 #'   \item{codigo}{Codigo CIE-10 (ej. "E11.0")}
 #'   \item{descripcion}{Diagnostico en espanol chileno}

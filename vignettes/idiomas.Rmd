@@ -30,7 +30,7 @@ El paquete `ciecl` soporta busquedas en multiples idiomas:
 
 ## Dataset CIE-10 Chile (Espanol)
 
-El dataset `cie10_cl` contiene **39,873 codigos** con descripciones en espanol
+El dataset `cie10_cl` contiene **39,877 codigos** con descripciones en espanol
 de Chile, basado en el catalogo oficial MINSAL/DEIS v2018.
 
 ```{r}

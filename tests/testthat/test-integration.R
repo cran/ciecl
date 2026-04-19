@@ -1,9 +1,9 @@
 # test-integration.R
 # Pruebas de integracion que verifican flujos de trabajo completos
 
-# ==============================================================================
+# ============================================================
 # FLUJOS DE TRABAJO TIPICOS DE USUARIO
-# ==============================================================================
+# ============================================================
 
 test_that("flujo: buscar termino -> obtener codigos -> validar", {
   skip_on_cran()
@@ -99,9 +99,9 @@ test_that("flujo: SQL personalizado -> procesamiento -> validacion", {
   expect_true("descripcion_completa" %in% names(detalles))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE CONSISTENCIA ENTRE FUNCIONES
-# ==============================================================================
+# ============================================================
 
 test_that("cie_lookup y cie10_sql retornan mismos datos", {
   skip_on_cran()
@@ -166,9 +166,9 @@ test_that("cie_validate_vector y cie_lookup son coherentes", {
   expect_true(all(resultado$codigo %in% codigos[validacion]))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE ESCENARIOS REALES
-# ==============================================================================
+# ============================================================
 
 test_that("escenario: analisis de egreso hospitalario", {
   skip_on_cran()
@@ -231,7 +231,7 @@ test_that("escenario: limpieza de datos con codigos sucios", {
   codigos_sucios <- c(
     "E110",     # Sin punto - valido
     "e11.0",    # Minusculas - valido
-    " E11.0 ",  # Espacios - invalido (debe trim antes)
+    " E11.0 ",  # Espacios - valido (se normaliza con trim)
     "E11",      # Categoria - valido
     "DIABETES", # Texto (invalido)
     NA,         # NA - invalido
@@ -239,9 +239,9 @@ test_that("escenario: limpieza de datos con codigos sucios", {
     "E11.0"     # Correcto - valido
   )
 
-  # 1. Validar formato (nota: espacios hacen invalido el codigo)
+  # 1. Validar formato (normaliza internamente: trim, punto, sufijo X)
   formato_ok <- cie_validate_vector(codigos_sucios)
-  expect_equal(formato_ok, c(TRUE, TRUE, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE))
+  expect_equal(formato_ok, c(TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, TRUE))
 
   # 2. Filtrar solo validos
   codigos_validos <- codigos_sucios[formato_ok]
@@ -256,9 +256,9 @@ test_that("escenario: limpieza de datos con codigos sucios", {
   expect_gt(nrow(resultado), 0)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE RENDIMIENTO BASICAS
-# ==============================================================================
+# ============================================================
 
 test_that("busquedas multiples son razonablemente rapidas", {
   skip_on_cran()
@@ -295,9 +295,9 @@ test_that("validacion de vector grande es rapida", {
   expect_length(resultado, 10000)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE INTEROPERABILIDAD CON dplyr
-# ==============================================================================
+# ============================================================
 
 test_that("resultados funcionan con dplyr::filter", {
   skip_on_cran()
@@ -338,9 +338,9 @@ test_that("resultados funcionan con dplyr::group_by y summarise", {
   expect_true("n" %in% names(resumen))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE API CIE-11 (SOLO SI HAY CREDENCIALES)
-# ==============================================================================
+# ============================================================
 
 test_that("cie11_search falla gracefully sin credenciales", {
   skip_on_cran()

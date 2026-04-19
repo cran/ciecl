@@ -13,8 +13,7 @@ if (identical(Sys.getenv("NOT_CRAN"), "")) {
 renviron_paths <- c(
   file.path(getwd(), ".Renviron"),
   normalizePath(file.path("..", "..", ".Renviron"), mustWork = FALSE),
-  normalizePath(file.path("..", ".Renviron"), mustWork = FALSE),
-  normalizePath("D:/MAGISTER/01_Paquete_R/ciecl/.Renviron", mustWork = FALSE)
+  normalizePath(file.path("..", ".Renviron"), mustWork = FALSE)
 )
 
 for (p in renviron_paths) {

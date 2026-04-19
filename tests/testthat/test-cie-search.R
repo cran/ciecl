@@ -117,9 +117,9 @@ test_that("cie_lookup con descripcion_completa mantiene columna en dataframe vac
   expect_equal(names(resultado_vacio), columnas_esperadas)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS PARA cie_siglas()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_siglas retorna todas las siglas", {
   resultado <- cie_siglas()
@@ -162,9 +162,9 @@ test_that("cie_siglas filtra por categoria", {
   expect_equal(nrow(invalida), 0)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS PARA rangos en cie_lookup()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_lookup maneja rangos invertidos", {
   skip_on_cran()
@@ -201,9 +201,9 @@ test_that("cie_search verbose=FALSE suprime mensajes", {
   )
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES DE EDGE CASES
-# ==============================================================================
+# ============================================================
 
 test_that("cie_search con threshold 0 retorna muchos resultados", {
   skip_on_cran()
@@ -323,9 +323,9 @@ test_that("cie_search normaliza tildes", {
   expect_gt(nrow(resultado_con), 0)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES cie_lookup()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_lookup con extract=TRUE extrae codigo de texto", {
   skip_on_cran()
@@ -404,9 +404,9 @@ test_that("cie_lookup maneja vector solo NAs", {
   expect_equal(nrow(resultado), 0)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS cie_guia_busqueda()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_guia_busqueda retorna data.frame", {
   resultado <- cie_guia_busqueda()
@@ -458,9 +458,9 @@ test_that("cie_guia_busqueda todas las columnas son character", {
   expect_type(resultado[["Ejemplo"]], "character")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES cie_search() - COBERTURA
-# ==============================================================================
+# ============================================================
 
 test_that("cie_search con solo_fuzzy=TRUE omite busqueda exacta", {
   skip_on_cran()
@@ -515,9 +515,9 @@ test_that("cie_search fuzzy encuentra typos", {
   expect_gt(nrow(resultado), 0)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES cie_lookup() - COBERTURA
-# ==============================================================================
+# ============================================================
 
 test_that("cie_lookup con extract=TRUE y check_siglas=TRUE combinados", {
   skip_on_cran()
@@ -548,6 +548,18 @@ test_that("cie_lookup con normalizar procesa codigo sin punto", {
   expect_equal(resultado$codigo, "E11.0")
 })
 
+test_that("cie_lookup con normalizar elimina sufijo X DEIS", {
+  skip_on_cran()
+
+  resultado <- cie_lookup("N10X", normalizar = TRUE)
+  expect_equal(nrow(resultado), 1)
+  expect_equal(resultado$codigo, "N10")
+
+  # Vector con multiples codigos X
+  res2 <- cie_lookup(c("I10X", "N40X"), normalizar = TRUE)
+  expect_equal(nrow(res2), 2)
+})
+
 test_that("cie_lookup maneja codigos especiales daga/asterisco", {
   skip_on_cran()
 
@@ -558,9 +570,9 @@ test_that("cie_lookup maneja codigos especiales daga/asterisco", {
   expect_s3_class(resultado, "tbl_df")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS COBERTURA - mensaje "Sin coincidencias" y sigla_to_codigo NULL
-# ==============================================================================
+# ============================================================
 
 test_that("cie_search muestra mensaje Sin coincidencias con verbose=TRUE", {
   skip_on_cran()

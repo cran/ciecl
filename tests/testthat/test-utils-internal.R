@@ -1,9 +1,9 @@
 # test-utils-internal.R
 # Pruebas de funciones internas (no exportadas)
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS normalizar_tildes()
-# ==============================================================================
+# ============================================================
 
 test_that("normalizar_tildes remueve tildes correctamente", {
   # Acceder a funcion interna
@@ -50,9 +50,9 @@ test_that("normalizar_tildes es vectorizado", {
   expect_equal(normalizar_tildes(entrada), esperado)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS get_siglas_medicas()
-# ==============================================================================
+# ============================================================
 
 test_that("get_siglas_medicas retorna lista completa", {
   get_siglas_medicas <- ciecl:::get_siglas_medicas
@@ -87,7 +87,7 @@ test_that("get_siglas_medicas tiene categorias validas", {
   get_siglas_medicas <- ciecl:::get_siglas_medicas
 
   siglas <- get_siglas_medicas()
-  categorias <- unique(sapply(siglas, function(x) x$categoria))
+  categorias <- unique(vapply(siglas, function(x) x$categoria, character(1)))
 
   # Categorias esperadas
   esperadas <- c("cardiovascular", "respiratoria", "metabolica",
@@ -99,9 +99,9 @@ test_that("get_siglas_medicas tiene categorias validas", {
   }
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS expandir_sigla()
-# ==============================================================================
+# ============================================================
 
 test_that("expandir_sigla expande siglas conocidas", {
   expandir_sigla <- ciecl:::expandir_sigla
@@ -129,9 +129,9 @@ test_that("expandir_sigla maneja espacios", {
   expect_equal(expandir_sigla(" DM "), "diabetes mellitus")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS extract_cie_from_text()
-# ==============================================================================
+# ============================================================
 
 test_that("extract_cie_from_text extrae codigo con prefijos", {
   extract_cie <- ciecl:::extract_cie_from_text
@@ -176,9 +176,9 @@ test_that("extract_cie_from_text maneja texto sin codigo valido", {
   expect_equal(extract_cie("123456"), "123456")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS cie10_empty_tibble()
-# ==============================================================================
+# ============================================================
 
 test_that("cie10_empty_tibble retorna tibble vacio con estructura correcta", {
   cie10_empty_tibble <- ciecl:::cie10_empty_tibble
@@ -218,9 +218,9 @@ test_that("cie10_empty_tibble tiene tipos correctos", {
   expect_type(resultado$es_cruz, "logical")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS sigla_to_codigo()
-# ==============================================================================
+# ============================================================
 
 test_that("sigla_to_codigo convierte siglas a codigos CIE-10", {
   skip_on_cran()  # Requiere DB
@@ -244,9 +244,9 @@ test_that("sigla_to_codigo retorna NULL para texto normal", {
   expect_null(sigla_to_codigo("cualquier texto"))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS cie_lookup_single()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_lookup_single funciona con codigo valido", {
   skip_on_cran()

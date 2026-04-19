@@ -10,7 +10,8 @@ cie_expand(codigo)
 \item{codigo}{String codigo padre (ej. "E11")}
 }
 \value{
-Character vector codigos hijos
+Character vector con todos los codigos hijos del codigo padre.
+Vector vacio si el codigo no existe en la base de datos.
 }
 \description{
 Expandir codigo jerarquico (ej. E11 -> E11.0-E11.9)
@@ -18,3 +19,11 @@ Expandir codigo jerarquico (ej. E11 -> E11.0-E11.9)
 \examples{
 cie_expand("E11")
 }
+\seealso{
+\code{\link{cie_normalizar}}, \code{\link{cie_lookup}}
+
+Other validacion: 
+\code{\link{cie_normalizar}()},
+\code{\link{cie_validate_vector}()}
+}
+\concept{validacion}

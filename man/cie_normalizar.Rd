@@ -9,13 +9,15 @@ cie_normalizar(codigos, buscar_db = TRUE)
 \arguments{
 \item{codigos}{Character vector de codigos en cualquier formato}
 
-\item{buscar_db}{Logical, buscar codigo en base de datos si no se encuentra exacto (default TRUE)}
+\item{buscar_db}{Logical, buscar codigo en base de datos
+si no se encuentra exacto (default TRUE)}
 }
 \value{
 Character vector con codigos normalizados al formato con punto
 }
 \description{
-Convierte codigos CIE-10 de diferentes formatos al formato estandar (con punto).
+Convierte codigos CIE-10 de diferentes formatos al
+formato estandar (con punto).
 Maneja multiples variaciones de entrada comunes en datos clinicos.
 }
 \details{
@@ -46,3 +48,12 @@ cie_normalizar("A17.0\u2020") # Retorna "A17.0" (elimina daga)
 cie_normalizar("G01*")     # Retorna "G01" (elimina asterisco)
 cie_normalizar(c("E110", "I10X", "Z00"))  # Vectorizado
 }
+\seealso{
+\code{\link{cie_validate_vector}},
+\code{\link{cie_expand}}, \code{\link{cie_lookup}}
+
+Other validacion: 
+\code{\link{cie_expand}()},
+\code{\link{cie_validate_vector}()}
+}
+\concept{validacion}

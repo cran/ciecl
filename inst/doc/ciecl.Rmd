@@ -1,10 +1,10 @@
 ---
-title: "Introduccion a ciecl: CIE-10 Chile en R"
+title: "Introduction to ciecl: Chilean ICD-10 in R"
 author: "Rodolfo Tasso Suazo"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Introduccion a ciecl}
+  %\VignetteIndexEntry{Introduction to ciecl: Chilean ICD-10 in R}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -19,78 +19,78 @@ knitr::opts_chunk$set(
 library(ciecl)
 ```
 
-> **Version 0.9.0**: Release candidate para CRAN con optimizaciones FTS5.
+> **Version 0.9.3**: Available on CRAN with SQLite optimizations and XLSX support.
 
-## Acerca del dataset
+## About the dataset
 
-El paquete incluye **39,873 codigos CIE-10** del catalogo oficial MINSAL/DEIS v2018,
-incluyendo categorias (3 digitos) y subcategorias (4+ digitos).
+The package includes **39,877 ICD-10 codes** from the official MINSAL/DEIS v2018 catalog,
+including categories (3 digits) and subcategories (4+ digits).
 
-## Instalacion
- 
+## Installation
+
 ```{r eval=FALSE}
-# Desde GitHub (version beta)
+# From GitHub (beta version)
 pak::pak("RodoTasso/ciecl")
 
-# Alternativa con devtools
+# Alternative with devtools
 devtools::install_github("RodoTasso/ciecl")
 ```
 
-## Busqueda SQL rapida
+## Fast SQL search
 
-```{r eval=FALSE}
-# Todos los codigos diabetes tipo 2
+```{r}
+# All type 2 diabetes codes
 cie10_sql("SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE 'E11%' LIMIT 5")
 ```
 
-## Busqueda por codigo
+## Search by code
 
-```{r eval=FALSE}
-# Busqueda de un solo codigo
+```{r}
+# Single code search
 cie_lookup("E11.0")
 
-# Busqueda vectorizada - multiples codigos a la vez
-codigos <- c("E11.0", "I10", "Z00", "J44.0")
-resultados <- cie_lookup(codigos)
+# Vectorized search - multiple codes at once
+codes <- c("E11.0", "I10", "Z00", "J44.0")
+cie_lookup(codes)
 
-# Expansion jerarquica
-cie_lookup("E11", expandir = TRUE)  # Retorna todos los E11.x
+# Hierarchical expansion
+cie_lookup("E11", expandir = TRUE)
 ```
 
-## Busqueda fuzzy con typos
+## Fuzzy search with typos
 
-```{r eval=FALSE}
-# Encuentra aunque este mal escrito
-cie_search("diabetis con coma", threshold = 0.75)
+```{r}
+# Finds even if misspelled
+cie_search("diabetis with coma", threshold = 0.75)
 ```
 
-## Comorbilidades Charlson
+## Charlson Comorbidities
 
 ```{r eval=FALSE}
-# Requiere: install.packages("comorbidity")
-df_pacientes <- data.frame(
-  id_pac = c(1, 1, 2, 2, 3),
-  diagnostico = c("E11.0", "I50.9", "C50.9", "N18.5", "J44.0")
+# Requires: install.packages("comorbidity")
+patient_df <- data.frame(
+  patient_id = c(1, 1, 2, 2, 3),
+  diagnosis = c("E11.0", "I50.9", "C50.9", "N18.5", "J44.0")
 )
 
-cie_comorbid(df_pacientes, id = "id_pac", code = "diagnostico", map = "charlson")
+cie_comorbid(patient_df, id = "patient_id", code = "diagnosis", map = "charlson")
 ```
 
-## Tablas interactivas
+## Interactive tables
 
 ```{r eval=FALSE}
-# Requiere: install.packages("gt")
-cie_table("E11")  # Visualizacion GT completa
+# Requires: install.packages("gt")
+cie_table("E11")  # Full GT visualization
 ```
 
-## Fuente de datos
+## Data source
 
-Datos oficiales CIE-10 Chile MINSAL/DEIS v2018:
+Official ICD-10 Chile data MINSAL/DEIS v2018:
 
-- Centro FIC Chile: <https://deis.minsal.cl/centrofic/>
-- Repositorio DEIS: <https://repositoriodeis.minsal.cl>
+- FIC Chile Center: <https://deis.minsal.cl/centrofic/>
+- DEIS Repository: <https://deis.minsal.cl>
 
-## Mas informacion
+## More information
 
-- Reportar problemas: <https://github.com/RodoTasso/ciecl/issues>
-- Repositorio: <https://github.com/RodoTasso/ciecl>
+- Report issues: <https://github.com/RodoTasso/ciecl/issues>
+- Repository: <https://github.com/RodoTasso/ciecl>

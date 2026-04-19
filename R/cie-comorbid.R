@@ -11,9 +11,14 @@ NULL
 #' @param map Character, esquema comorbilidad ("charlson" o "elixhauser")
 #' @param assign0 Logical, asignar 0 si sin comorbilidad (default TRUE)
 #' @return data.frame ancho con scores comorbilidad por paciente
+#' @family comorbilidades
+#' @seealso \code{\link{cie_map_comorbid}}, \code{\link{cie_normalizar}}
 #' @export
 #' @examples
-#' \dontrun{
+#' # Ver documentacion de parametros
+#' args(cie_comorbid)
+#'
+#' \donttest{
 #' df <- data.frame(
 #'   id_pac = c(1, 1, 2, 2),
 #'   diag = c("E11.0", "I21.0", "C50.9", "E10.9")
@@ -38,16 +43,21 @@ cie_comorbid <- function(data, id, code, map = c("charlson", "elixhauser"),
   # Advertir sobre NAs en columna de codigos
   n_na <- sum(is.na(data[[code]]))
   if (n_na > 0) {
-    warning("Columna '", code, "' contiene ", n_na, " valores NA que seran ignorados")
+    warning("Columna '", code, "' contiene ", n_na,
+            " valores NA que seran ignorados")
     data <- data[!is.na(data[[code]]), ]
   }
 
   # Advertir sobre codigos vacios
   n_empty <- sum(nchar(trimws(data[[code]])) == 0)
   if (n_empty > 0) {
-    warning("Columna '", code, "' contiene ", n_empty, " valores vacios que seran ignorados")
+    warning("Columna '", code, "' contiene ", n_empty,
+            " valores vacios que seran ignorados")
     data <- data[nchar(trimws(data[[code]])) > 0, ]
   }
+
+  # Normalizar codigos (elimina sufijo X DEIS, agrega punto, etc.)
+  data[[code]] <- cie_normalizar(data[[code]], buscar_db = FALSE)
 
   # Mapear a nomenclatura comorbidity package
   map_full <- switch(map,
@@ -86,6 +96,8 @@ cie_comorbid <- function(data, id, code, map = c("charlson", "elixhauser"),
 #' 
 #' @param codigos Character vector codigos CIE-10
 #' @return tibble con codigo + categoria_comorbilidad
+#' @family comorbilidades
+#' @seealso \code{\link{cie_comorbid}}, \code{\link{cie_normalizar}}
 #' @export
 #' @examples
 #' cie_map_comorbid(c("E11.0", "I50.9", "C50.9"))
@@ -98,33 +110,20 @@ cie_map_comorbid <- function(codigos) {
     ))
   }
 
-  # Mapeo manual categorias MINSAL (extender segun necesidad)
-  mapeo_chile <- tibble::tribble(
-    ~patron,        ~categoria,
-    "^E10|^E11",    "Diabetes",
-    "^I50",         "Insuficiencia cardiaca",
-    "^I21|^I22",    "Infarto miocardio",
-    "^C[0-9]{2}",   "Neoplasia maligna",
-    "^J40|^J44",    "EPOC",
-    "^N18",         "Enfermedad renal cronica",
-    "^F[0-9]{2}",   "Trastornos mentales"
-  )
-
-  # Funcion para categorizar un solo codigo
-
-  categorizar <- function(cod) {
-    if (is.na(cod)) return("Otra")
-    for (i in seq_len(nrow(mapeo_chile))) {
-      if (stringr::str_detect(cod, mapeo_chile$patron[i])) {
-        return(mapeo_chile$categoria[i])
-      }
-    }
-    return("Otra")
-  }
-
+  # Categorizacion vectorizada con case_when
   resultado <- tibble::tibble(
     codigo = codigos,
-    categoria = sapply(codigos, categorizar, USE.NAMES = FALSE)
+    categoria = dplyr::case_when(
+      is.na(codigos) ~ "Otra",
+      stringr::str_detect(codigos, "^E10|^E11") ~ "Diabetes",
+      stringr::str_detect(codigos, "^I50") ~ "Insuficiencia cardiaca",
+      stringr::str_detect(codigos, "^I21|^I22") ~ "Infarto miocardio",
+      stringr::str_detect(codigos, "^C[0-9]{2}") ~ "Neoplasia maligna",
+      stringr::str_detect(codigos, "^J4[0-4]") ~ "EPOC",
+      stringr::str_detect(codigos, "^N18") ~ "Enfermedad renal cronica",
+      stringr::str_detect(codigos, "^F[0-9]{2}") ~ "Trastornos mentales",
+      .default = "Otra"
+    )
   )
 
   return(resultado)

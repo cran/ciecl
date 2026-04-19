@@ -1,6 +1,6 @@
-# ==============================================================================
+# ============================================================
 # PRUEBAS cie_comorbid()
-# ==============================================================================
+# ============================================================
 
 # ------------------------------------------------------------------------------
 # Pruebas basicas de Charlson
@@ -507,9 +507,9 @@ test_that("cie_comorbid map default es charlson", {
   expect_true("score_charlson" %in% names(resultado))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS cie_map_comorbid()
-# ==============================================================================
+# ============================================================
 
 # ------------------------------------------------------------------------------
 # Pruebas basicas de mapeo
@@ -584,6 +584,27 @@ test_that("cie_map_comorbid categoriza EPOC J44", {
 test_that("cie_map_comorbid categoriza EPOC J40", {
   resultado <- cie_map_comorbid("J40")
   expect_equal(resultado$categoria[1], "EPOC")
+})
+
+test_that("cie_map_comorbid categoriza EPOC J41 bronquitis cronica", {
+  resultado <- cie_map_comorbid("J41.0")
+  expect_equal(resultado$categoria[1], "EPOC")
+})
+
+test_that("cie_map_comorbid categoriza EPOC J42 bronquitis cronica NE", {
+  resultado <- cie_map_comorbid("J42")
+  expect_equal(resultado$categoria[1], "EPOC")
+})
+
+test_that("cie_map_comorbid categoriza EPOC J43 enfisema", {
+  resultado <- cie_map_comorbid("J43.9")
+  expect_equal(resultado$categoria[1], "EPOC")
+})
+
+test_that("cie_map_comorbid categoriza todo espectro EPOC J40-J44", {
+  codigos <- c("J40", "J41.0", "J42", "J43.9", "J44.1")
+  resultado <- cie_map_comorbid(codigos)
+  expect_true(all(resultado$categoria == "EPOC"))
 })
 
 test_that("cie_map_comorbid categoriza enfermedad renal cronica", {

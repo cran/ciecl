@@ -4,21 +4,26 @@
 \alias{cie_table}
 \title{Generar tabla HTML interactiva GT de codigo CIE-10}
 \usage{
-cie_table(codigo, interactive = TRUE)
+cie_table(codigo)
 }
 \arguments{
 \item{codigo}{String codigo (ej. "E11" muestra jerarquia)}
-
-\item{interactive}{Logical, tabla gt reactable (default TRUE)}
 }
 \value{
-Objeto gt table HTML
+Objeto de clase \code{gt_tbl} (tabla HTML interactiva)
 }
 \description{
 Generar tabla HTML interactiva GT de codigo CIE-10
 }
 \examples{
-\dontrun{
+# Requiere paquete gt
+requireNamespace("gt", quietly = TRUE)
+
+\donttest{
 cie_table("E11")  # Diabetes tipo 2 completo
 }
 }
+\seealso{
+\code{\link{cie_search}}, \code{\link{cie_lookup}}
+}
+\concept{visualizacion}

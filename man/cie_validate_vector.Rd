@@ -12,7 +12,8 @@ cie_validate_vector(codigos, strict = FALSE)
 \item{strict}{Logical, validar existencia en DB (default FALSE)}
 }
 \value{
-Logical vector misma longitud input
+Logical vector de la misma longitud que \code{codigos}. TRUE si el
+codigo tiene formato CIE-10 valido (y existe en DB si \code{strict = TRUE}).
 }
 \description{
 Validar vector de codigos CIE-10 formato
@@ -20,3 +21,11 @@ Validar vector de codigos CIE-10 formato
 \examples{
 cie_validate_vector(c("E11.0", "INVALIDO", "Z00"))
 }
+\seealso{
+\code{\link{cie_normalizar}}, \code{\link{cie_expand}}
+
+Other validacion: 
+\code{\link{cie_expand}()},
+\code{\link{cie_normalizar}()}
+}
+\concept{validacion}

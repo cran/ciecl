@@ -65,6 +65,13 @@ test_that("cie_validate_vector detecta formatos invalidos", {
   expect_equal(validos, c(TRUE, TRUE, FALSE))
 })
 
+test_that("cie_validate_vector acepta codigos con sufijo X DEIS", {
+  expect_true(cie_validate_vector("I10X"))
+  expect_true(cie_validate_vector("N10X"))
+  expect_equal(cie_validate_vector(c("I10X", "N40X", "INVALIDO")),
+               c(TRUE, TRUE, FALSE))
+})
+
 test_that("cie_expand genera hijos correctos", {
   skip_on_cran()
 
@@ -73,9 +80,9 @@ test_that("cie_expand genera hijos correctos", {
   expect_true(all(stringr::str_starts(hijos, "E11")))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES cie_normalizar() con buscar_db=TRUE
-# ==============================================================================
+# ============================================================
 
 test_that("cie_normalizar con buscar_db=TRUE verifica existencia", {
   skip_on_cran()
@@ -100,14 +107,15 @@ test_that("cie_normalizar con buscar_db=TRUE es vectorizado", {
   expect_true("E11.0" %in% resultado)
 })
 
-test_that("cie_normalizar con buscar_db=TRUE falla con NA", {
+test_that("cie_normalizar con buscar_db=TRUE maneja NAs", {
   skip_on_cran()
 
   codigos <- c(NA, "E11.0")
 
-  expect_error(
-    cie_normalizar(codigos, buscar_db = TRUE)
-  )
+  resultado <- cie_normalizar(codigos, buscar_db = TRUE)
+  expect_length(resultado, 2)
+  expect_true(is.na(resultado[1]))
+  expect_equal(resultado[2], "E11.0")
 })
 
 
@@ -119,9 +127,9 @@ test_that("cie_normalizar maneja codigo inexistente con buscar_db=TRUE", {
   expect_equal(resultado, "X99.9")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES cie_validate_vector() con strict=TRUE
-# ==============================================================================
+# ============================================================
 
 test_that("cie_validate_vector con strict=TRUE verifica existencia en DB", {
   skip_on_cran()
@@ -151,9 +159,9 @@ test_that("cie_validate_vector maneja NA con strict=TRUE", {
   expect_false(resultado[2])  # NA es FALSE
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES cie_expand()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_expand maneja codigo vacio", {
   resultado <- cie_expand("")
@@ -181,9 +189,9 @@ test_that("cie_expand maneja codigo con subcategorias", {
   expect_true(all(grepl("^E11", hijos)))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES COBERTURA - cie_normalizar()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_normalizar maneja minusculas y mayusculas mezcladas", {
   skip_on_cran()
@@ -238,9 +246,9 @@ test_that("cie_normalizar buscar_db=TRUE con multiples codigos invalidos", {
   expect_length(resultado, 3)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES COBERTURA - cie_validate_vector()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_validate_vector maneja vector vacio", {
   resultado <- cie_validate_vector(character(0))
@@ -299,9 +307,9 @@ test_that("cie_validate_vector rechaza formatos incorrectos", {
   expect_true(all(resultado == FALSE))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES COBERTURA - cie_expand()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_expand con espacio en blanco", {
   resultado <- cie_expand("   ")
@@ -336,9 +344,9 @@ test_that("cie_expand retorna character vector", {
   expect_type(hijos, "character")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE EDGE CASES ADICIONALES
-# ==============================================================================
+# ============================================================
 
 test_that("cie_normalizar maneja codigo con espacios multiples", {
   skip_on_cran()
@@ -376,9 +384,9 @@ test_that("cie_normalizar con codigos de trauma largos", {
   expect_length(resultado, 2)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS COBERTURA LINEAS 90-94: Extension cod_con_0 para codigos 3 digitos
-# ==============================================================================
+# ============================================================
 
 test_that("cie_normalizar buscar_db=TRUE extiende codigo 3 digitos con 0", {
   skip_on_cran()

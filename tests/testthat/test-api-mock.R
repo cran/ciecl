@@ -1,43 +1,13 @@
 # test-api-mock.R
 # Pruebas de API CIE-11 con mocks y validacion de parametros
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE VALIDACION DE PARAMETROS cie11_search()
-# ==============================================================================
+# ============================================================
 
-test_that("cie11_search usa max_results correctamente", {
-  skip_if_not_installed("httr2")
-
-  # Verificar que el parametro se acepta sin error de sintaxis
-  # La funcion retorna warning y tibble vacio con credenciales invalidas
-  expect_warning(
-    resultado <- cie11_search("diabetes", api_key = "test:test", max_results = 5),
-    "Error API CIE-11"
-  )
-
-  expect_s3_class(resultado, "tbl_df")
-})
-
-test_that("cie11_search acepta parametro lang", {
-  skip_if_not_installed("httr2")
-
-  # Verificar que lang = "es" y "en" son aceptados (retorna warning, no error)
-  expect_warning(
-    resultado_es <- cie11_search("diabetes", api_key = "test:test", lang = "es"),
-    "Error API CIE-11"
-  )
-  expect_s3_class(resultado_es, "tbl_df")
-
-  expect_warning(
-    resultado_en <- cie11_search("diabetes", api_key = "test:test", lang = "en"),
-    "Error API CIE-11"
-  )
-  expect_s3_class(resultado_en, "tbl_df")
-})
-
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE MANEJO DE ERRORES
-# ==============================================================================
+# ============================================================
 
 test_that("cie11_search maneja error de conexion gracefully", {
   skip_if_not_installed("httr2")
@@ -69,9 +39,9 @@ test_that("cie11_search retorna tibble vacio en error", {
   expect_equal(nrow(resultado), 0)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE FORMATO DE API KEY
-# ==============================================================================
+# ============================================================
 
 test_that("cie11_search rechaza API key sin separador", {
   skip_if_not_installed("httr2")
@@ -110,9 +80,9 @@ test_that("cie11_search acepta API key con formato correcto",
   }
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE VARIABLE DE ENTORNO
-# ==============================================================================
+# ============================================================
 
 test_that("cie11_search usa ICD_API_KEY de environment", {
   skip_if_not_installed("httr2")
@@ -166,37 +136,9 @@ test_that("cie11_search prefiere argumento sobre environment", {
   expect_s3_class(resultado, "tbl_df")
 })
 
-# ==============================================================================
-# PRUEBAS DE ESTRUCTURA DE RESPUESTA
-# ==============================================================================
-
-test_that("cie11_search retorna columnas esperadas", {
-  skip_if_not_installed("httr2")
-
-  # Incluso en error, debe retornar estructura correcta
-  suppressWarnings({
-    resultado <- cie11_search("test", api_key = "test:test")
-  })
-
-  columnas_esperadas <- c("codigo", "titulo", "capitulo")
-  expect_true(all(columnas_esperadas %in% names(resultado)))
-})
-
-test_that("cie11_search columnas tienen tipos correctos", {
-  skip_if_not_installed("httr2")
-
-  suppressWarnings({
-    resultado <- cie11_search("test", api_key = "test:test")
-  })
-
-  expect_type(resultado$codigo, "character")
-  expect_type(resultado$titulo, "character")
-  expect_type(resultado$capitulo, "character")
-})
-
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE DEPENDENCIA HTTR2
-# ==============================================================================
+# ============================================================
 
 test_that("cie11_search informa sobre httr2 faltante", {
   # Este test solo funciona si httr2 NO esta instalado
@@ -208,4 +150,208 @@ test_that("cie11_search informa sobre httr2 faltante", {
     cie11_search("diabetes", api_key = "test:test"),
     "httr2"
   )
+})
+
+# ============================================================
+# PRUEBAS CON HTTP MOCKING (local_mocked_bindings)
+# Cubren lineas 41-95 de cie-api.R: OAuth token + search + parsing
+# ============================================================
+
+test_that("cie11_search retorna resultados con mock HTTP exitoso", {
+  skip_if_not_installed("httr2")
+
+  call_count <- 0L
+
+  local_mocked_bindings(
+    req_perform = function(req, ...) {
+      call_count <<- call_count + 1L
+      structure(list(call_id = call_count), class = "httr2_response")
+    },
+    resp_body_json = function(resp, ...) {
+      if (resp$call_id == 1L) {
+        # Token response
+        list(access_token = "mock_token_abc123")
+      } else {
+        # Search response con resultados
+        list(destinationEntities = data.frame(
+          theCode = c("5A00", "5A01", "5A02"),
+          title = c(
+            "<em class='found'>Diabetes</em> mellitus tipo 1",
+            "<em class='found'>Diabetes</em> mellitus tipo 2",
+            "Otra <em class='found'>diabetes</em> mellitus"
+          ),
+          chapter = c("05", "05", "05"),
+          stringsAsFactors = FALSE
+        ))
+      }
+    },
+    .package = "httr2"
+  )
+
+  resultado <- cie11_search("diabetes", api_key = "test_id:test_secret")
+
+  expect_s3_class(resultado, "tbl_df")
+  expect_equal(nrow(resultado), 3)
+  expect_equal(resultado$codigo, c("5A00", "5A01", "5A02"))
+  # Verificar que HTML tags fueron limpiados
+
+  expect_false(grepl("<em", resultado$titulo[1]))
+  expect_true(grepl("Diabetes mellitus tipo 1", resultado$titulo[1]))
+  expect_equal(resultado$capitulo, c("05", "05", "05"))
+})
+
+test_that("cie11_search respeta max_results con mock", {
+  skip_if_not_installed("httr2")
+
+  call_count <- 0L
+
+  local_mocked_bindings(
+    req_perform = function(req, ...) {
+      call_count <<- call_count + 1L
+      structure(list(call_id = call_count), class = "httr2_response")
+    },
+    resp_body_json = function(resp, ...) {
+      if (resp$call_id == 1L) {
+        list(access_token = "mock_token")
+      } else {
+        list(destinationEntities = data.frame(
+          theCode = c("5A00", "5A01", "5A02", "5A03", "5A04"),
+          title = paste("Resultado", 1:5),
+          chapter = rep("05", 5),
+          stringsAsFactors = FALSE
+        ))
+      }
+    },
+    .package = "httr2"
+  )
+
+  resultado <- cie11_search("diabetes", api_key = "id:secret", max_results = 2)
+
+  expect_s3_class(resultado, "tbl_df")
+  expect_equal(nrow(resultado), 2)
+})
+
+test_that("cie11_search retorna tibble vacio sin destinationEntities", {
+  skip_if_not_installed("httr2")
+
+  call_count <- 0L
+
+  local_mocked_bindings(
+    req_perform = function(req, ...) {
+      call_count <<- call_count + 1L
+      structure(list(call_id = call_count), class = "httr2_response")
+    },
+    resp_body_json = function(resp, ...) {
+      if (resp$call_id == 1L) {
+        list(access_token = "mock_token")
+      } else {
+        # Sin destinationEntities
+        list(error = FALSE, errorMessage = "")
+      }
+    },
+    .package = "httr2"
+  )
+
+  expect_message(
+    resultado <- cie11_search("xyznonexistent", api_key = "id:secret"),
+    "Sin resultados"
+  )
+
+  expect_s3_class(resultado, "tbl_df")
+  expect_equal(nrow(resultado), 0)
+  expect_true(all(c("codigo", "titulo", "capitulo") %in% names(resultado)))
+})
+
+test_that("cie11_search limpia HTML tags correctamente con mock", {
+  skip_if_not_installed("httr2")
+
+  call_count <- 0L
+
+  local_mocked_bindings(
+    req_perform = function(req, ...) {
+      call_count <<- call_count + 1L
+      structure(list(call_id = call_count), class = "httr2_response")
+    },
+    resp_body_json = function(resp, ...) {
+      if (resp$call_id == 1L) {
+        list(access_token = "mock_token")
+      } else {
+        list(destinationEntities = data.frame(
+          theCode = "BA00",
+          title = paste0(
+            "<em class='found'>Hipertensi\u00f3n</em> ",
+            "<em class='found'>arterial</em> esencial"),
+          chapter = "11",
+          stringsAsFactors = FALSE
+        ))
+      }
+    },
+    .package = "httr2"
+  )
+
+  resultado <- cie11_search("hipertension", api_key = "id:secret")
+
+  expect_equal(nrow(resultado), 1)
+  expect_equal(resultado$titulo[1], "Hipertensi\u00f3n arterial esencial")
+  expect_false(grepl("<em", resultado$titulo[1]))
+})
+
+test_that("cie11_search maneja JSON inesperado sin entities", {
+  skip_if_not_installed("httr2")
+
+  call_count <- 0L
+
+  local_mocked_bindings(
+    req_perform = function(req, ...) {
+      call_count <<- call_count + 1L
+      structure(list(call_id = call_count), class = "httr2_response")
+    },
+    resp_body_json = function(resp, ...) {
+      if (resp$call_id == 1L) {
+        list(access_token = "mock_token")
+      } else {
+        # JSON sin destinationEntities ni error — estructura inesperada
+        list(status = "ok", data = list())
+      }
+    },
+    .package = "httr2"
+  )
+
+  expect_message(
+    resultado <- cie11_search("unexpected", api_key = "id:secret"),
+    "Sin resultados"
+  )
+
+  expect_s3_class(resultado, "tbl_df")
+  expect_equal(nrow(resultado), 0)
+})
+
+test_that("cie11_search retorna tibble vacio con destinationEntities vacio", {
+  skip_if_not_installed("httr2")
+
+  call_count <- 0L
+
+  local_mocked_bindings(
+    req_perform = function(req, ...) {
+      call_count <<- call_count + 1L
+      structure(list(call_id = call_count), class = "httr2_response")
+    },
+    resp_body_json = function(resp, ...) {
+      if (resp$call_id == 1L) {
+        list(access_token = "mock_token")
+      } else {
+        # destinationEntities presente pero vacio
+        list(destinationEntities = list())
+      }
+    },
+    .package = "httr2"
+  )
+
+  expect_message(
+    resultado <- cie11_search("nada", api_key = "id:secret"),
+    "Sin resultados"
+  )
+
+  expect_s3_class(resultado, "tbl_df")
+  expect_equal(nrow(resultado), 0)
 })

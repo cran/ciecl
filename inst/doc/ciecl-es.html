@@ -14,7 +14,7 @@
 
 <meta name="date" content="2026-04-18" />
 
-<title>Introduction to ciecl: Chilean ICD-10 in R</title>
+<title>Introduccion a ciecl: CIE-10 Chile en R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -339,7 +339,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Introduction to ciecl: Chilean ICD-10 in
+<h1 class="title toc-ignore">Introduccion a ciecl: CIE-10 Chile en
 R</h1>
 <h4 class="author">Rodolfo Tasso Suazo</h4>
 <h4 class="date">2026-04-18</h4>
@@ -347,26 +347,26 @@ R</h1>
 
 
 <blockquote>
-<p><strong>Version 0.9.3</strong>: Available on CRAN with SQLite
-optimizations and XLSX support.</p>
+<p><strong>Version 0.9.3</strong>: Disponible en CRAN con optimizaciones
+SQLite y soporte XLSX.</p>
 </blockquote>
-<div id="about-the-dataset" class="section level2">
-<h2>About the dataset</h2>
-<p>The package includes <strong>39,877 ICD-10 codes</strong> from the
-official MINSAL/DEIS v2018 catalog, including categories (3 digits) and
-subcategories (4+ digits).</p>
+<div id="acerca-del-dataset" class="section level2">
+<h2>Acerca del dataset</h2>
+<p>El paquete incluye <strong>39,877 codigos CIE-10</strong> del
+catalogo oficial MINSAL/DEIS v2018, incluyendo categorias (3 digitos) y
+subcategorias (4+ digitos).</p>
 </div>
-<div id="installation" class="section level2">
-<h2>Installation</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># From GitHub (beta version)</span></span>
+<div id="instalacion" class="section level2">
+<h2>Instalacion</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Desde GitHub (version beta)</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Alternative with devtools</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Alternativa con devtools</span></span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>)</span></code></pre></div>
 </div>
-<div id="fast-sql-search" class="section level2">
-<h2>Fast SQL search</h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># All type 2 diabetes codes</span></span>
+<div id="busqueda-sql-rapida" class="section level2">
+<h2>Busqueda SQL rapida</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Todos los codigos diabetes tipo 2</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">cie10_sql</span>(<span class="st">&quot;SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE &#39;E11%&#39; LIMIT 5&quot;</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 2</span></span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                                           </span></span>
@@ -377,9 +377,9 @@ subcategories (4+ digits).</p>
 <span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; 4 E11.2  Diabetes mellitus tipo 2 con complicaciones renales   </span></span>
 <span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 5 E11.3  Diabetes mellitus tipo 2 con complicaciones oftálmicas</span></span></code></pre></div>
 </div>
-<div id="search-by-code" class="section level2">
-<h2>Search by code</h2>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Single code search</span></span>
+<div id="busqueda-por-codigo" class="section level2">
+<h2>Busqueda por codigo</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Busqueda de un solo codigo</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11.0&quot;</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 10</span></span>
 <span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion       categoria seccion capitulo_nombre inclusion exclusion</span></span>
@@ -387,9 +387,9 @@ subcategories (4+ digits).</p>
 <span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 1 E11.0  Diabetes mellitu… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;</span></span>
 <span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co"># Vectorized search - multiple codes at once</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>codes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I10&quot;</span>, <span class="st">&quot;Z00&quot;</span>, <span class="st">&quot;J44.0&quot;</span>)</span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">cie_lookup</span>(codes)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co"># Busqueda vectorizada - multiples codigos a la vez</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>codigos <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I10&quot;</span>, <span class="st">&quot;Z00&quot;</span>, <span class="st">&quot;J44.0&quot;</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">cie_lookup</span>(codigos)</span>
 <span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 10</span></span>
 <span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion       categoria seccion capitulo_nombre inclusion exclusion</span></span>
 <span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
@@ -399,7 +399,7 @@ subcategories (4+ digits).</p>
 <span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; 4 Z00    Examen general e… Z00 EXAM… Z00-Z1… Cap.21  FACTOR… &lt;NA&gt;      &lt;NA&gt;     </span></span>
 <span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;</span></span>
 <span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co"># Hierarchical expansion</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co"># Expansion jerarquica</span></span>
 <span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11&quot;</span>, <span class="at">expandir =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 10</span></span>
 <span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion      categoria seccion capitulo_nombre inclusion exclusion</span></span>
@@ -417,53 +417,53 @@ subcategories (4+ digits).</p>
 <span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="co">#&gt; 11 E11.9  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
 <span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;</span></span></code></pre></div>
 </div>
-<div id="fuzzy-search-with-typos" class="section level2">
-<h2>Fuzzy search with typos</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Finds even if misspelled</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;diabetis with coma&quot;</span>, <span class="at">threshold =</span> <span class="fl">0.75</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 22 × 4</span></span>
+<div id="busqueda-fuzzy-con-typos" class="section level2">
+<h2>Busqueda fuzzy con typos</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Encuentra aunque este mal escrito</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;diabetis con coma&quot;</span>, <span class="at">threshold =</span> <span class="fl">0.75</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 50 × 4</span></span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
 <span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt;  1 B15.0  Hepatitis aguda tipo A, con coma hepático              0.333 B15 HEPA…</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt;  2 B15.9  Hepatitis aguda tipo A, sin coma hepático              0.333 B15 HEPA…</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt;  3 B16.0  Hepatitis aguda tipo B, con agente delta (coinfección… 0.333 B16 HEPA…</span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt;  4 B16.1  Hepatitis aguda tipo B, con agente delta (coinfección… 0.333 B16 HEPA…</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt;  5 B16.2  Hepatitis aguda tipo B, sin agente delta, con coma he… 0.333 B16 HEPA…</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt;  6 B16.9  Hepatitis aguda tipo B, sin agente delta y sin coma h… 0.333 B16 HEPA…</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;  7 B19.0  Hepatitis viral no especificada, con coma hepático     0.333 B19 HEPA…</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;  8 B19.9  Hepatitis viral no especificada, sin  coma hepático    0.333 B19 HEPA…</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;  9 E03.5  Coma mixedematoso                                      0.333 E03 OTRO…</span></span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 10 E10.0  Diabetes mellitus tipo 1 con coma                      0.333 E10 DIAB…</span></span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; # ℹ 12 more rows</span></span></code></pre></div>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt;  1 B15.0  Hepatitis aguda tipo A, con coma hepático              0.667 B15 HEPA…</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt;  2 B16.0  Hepatitis aguda tipo B, con agente delta (coinfección… 0.667 B16 HEPA…</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt;  3 B16.1  Hepatitis aguda tipo B, con agente delta (coinfección… 0.667 B16 HEPA…</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt;  4 B16.2  Hepatitis aguda tipo B, sin agente delta, con coma he… 0.667 B16 HEPA…</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt;  5 B19.0  Hepatitis viral no especificada, con coma hepático     0.667 B19 HEPA…</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt;  6 E10.0  Diabetes mellitus tipo 1 con coma                      0.667 E10 DIAB…</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;  7 E11.0  Diabetes mellitus tipo 2 con coma                      0.667 E11 DIAB…</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;  8 E12.0  Diabetes mellitus asociada con desnutrición, con coma  0.667 E12 DIAB…</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;  9 E13.0  Otras diabetes mellitus especificadas, con coma        0.667 E13 OTRA…</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 10 E14.0  Diabetes mellitus, no especificada, con coma           0.667 E14 DIAB…</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; # ℹ 40 more rows</span></span></code></pre></div>
 </div>
-<div id="charlson-comorbidities" class="section level2">
-<h2>Charlson Comorbidities</h2>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Requires: install.packages(&quot;comorbidity&quot;)</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>patient_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">patient_id =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>),</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">diagnosis =</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I50.9&quot;</span>, <span class="st">&quot;C50.9&quot;</span>, <span class="st">&quot;N18.5&quot;</span>, <span class="st">&quot;J44.0&quot;</span>)</span>
+<div id="comorbilidades-charlson" class="section level2">
+<h2>Comorbilidades Charlson</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Requiere: install.packages(&quot;comorbidity&quot;)</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>df_pacientes <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">id_pac =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>),</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">diagnostico =</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I50.9&quot;</span>, <span class="st">&quot;C50.9&quot;</span>, <span class="st">&quot;N18.5&quot;</span>, <span class="st">&quot;J44.0&quot;</span>)</span>
 <span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>)</span>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="fu">cie_comorbid</span>(patient_df, <span class="at">id =</span> <span class="st">&quot;patient_id&quot;</span>, <span class="at">code =</span> <span class="st">&quot;diagnosis&quot;</span>, <span class="at">map =</span> <span class="st">&quot;charlson&quot;</span>)</span></code></pre></div>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="fu">cie_comorbid</span>(df_pacientes, <span class="at">id =</span> <span class="st">&quot;id_pac&quot;</span>, <span class="at">code =</span> <span class="st">&quot;diagnostico&quot;</span>, <span class="at">map =</span> <span class="st">&quot;charlson&quot;</span>)</span></code></pre></div>
 </div>
-<div id="interactive-tables" class="section level2">
-<h2>Interactive tables</h2>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Requires: install.packages(&quot;gt&quot;)</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">cie_table</span>(<span class="st">&quot;E11&quot;</span>)  <span class="co"># Full GT visualization</span></span></code></pre></div>
+<div id="tablas-interactivas" class="section level2">
+<h2>Tablas interactivas</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Requiere: install.packages(&quot;gt&quot;)</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">cie_table</span>(<span class="st">&quot;E11&quot;</span>)  <span class="co"># Visualizacion GT completa</span></span></code></pre></div>
 </div>
-<div id="data-source" class="section level2">
-<h2>Data source</h2>
-<p>Official ICD-10 Chile data MINSAL/DEIS v2018:</p>
+<div id="fuente-de-datos" class="section level2">
+<h2>Fuente de datos</h2>
+<p>Datos oficiales CIE-10 Chile MINSAL/DEIS v2018:</p>
 <ul>
-<li>FIC Chile Center: <a href="https://deis.minsal.cl/centrofic/" class="uri">https://deis.minsal.cl/centrofic/</a></li>
-<li>DEIS Repository: <a href="https://deis.minsal.cl" class="uri">https://deis.minsal.cl</a></li>
+<li>Centro FIC Chile: <a href="https://deis.minsal.cl/centrofic/" class="uri">https://deis.minsal.cl/centrofic/</a></li>
+<li>Repositorio DEIS: <a href="https://deis.minsal.cl" class="uri">https://deis.minsal.cl</a></li>
 </ul>
 </div>
-<div id="more-information" class="section level2">
-<h2>More information</h2>
+<div id="mas-informacion" class="section level2">
+<h2>Mas informacion</h2>
 <ul>
-<li>Report issues: <a href="https://github.com/RodoTasso/ciecl/issues" class="uri">https://github.com/RodoTasso/ciecl/issues</a></li>
-<li>Repository: <a href="https://github.com/RodoTasso/ciecl" class="uri">https://github.com/RodoTasso/ciecl</a></li>
+<li>Reportar problemas: <a href="https://github.com/RodoTasso/ciecl/issues" class="uri">https://github.com/RodoTasso/ciecl/issues</a></li>
+<li>Repositorio: <a href="https://github.com/RodoTasso/ciecl" class="uri">https://github.com/RodoTasso/ciecl</a></li>
 </ul>
 </div>
 

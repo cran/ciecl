@@ -25,24 +25,15 @@ test_that("cie_table maneja codigo invalido", {
   expect_error(cie_table("XXXXX"), "no encontrado")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS ADICIONALES cie_table()
-# ==============================================================================
+# ============================================================
 
-test_that("cie_table con interactive=FALSE funciona", {
+test_that("cie_table genera tabla gt correctamente", {
   skip_if_not_installed("gt")
   skip_on_cran()
 
-  # El parametro interactive existe aunque no se use internamente
-  tabla <- cie_table("E11", interactive = FALSE)
-  expect_s3_class(tabla, "gt_tbl")
-})
-
-test_that("cie_table con interactive=TRUE funciona", {
-  skip_if_not_installed("gt")
-  skip_on_cran()
-
-  tabla <- cie_table("E11", interactive = TRUE)
+  tabla <- cie_table("E11")
   expect_s3_class(tabla, "gt_tbl")
 })
 

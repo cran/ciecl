@@ -8,41 +8,41 @@ knitr::opts_chunk$set(
 library(ciecl)
 
 ## ----eval=FALSE---------------------------------------------------------------
-# # From GitHub (beta version)
+# # Desde GitHub (version beta)
 # pak::pak("RodoTasso/ciecl")
 # 
-# # Alternative with devtools
+# # Alternativa con devtools
 # devtools::install_github("RodoTasso/ciecl")
 
 ## -----------------------------------------------------------------------------
-# All type 2 diabetes codes
+# Todos los codigos diabetes tipo 2
 cie10_sql("SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE 'E11%' LIMIT 5")
 
 ## -----------------------------------------------------------------------------
-# Single code search
+# Busqueda de un solo codigo
 cie_lookup("E11.0")
 
-# Vectorized search - multiple codes at once
-codes <- c("E11.0", "I10", "Z00", "J44.0")
-cie_lookup(codes)
+# Busqueda vectorizada - multiples codigos a la vez
+codigos <- c("E11.0", "I10", "Z00", "J44.0")
+cie_lookup(codigos)
 
-# Hierarchical expansion
+# Expansion jerarquica
 cie_lookup("E11", expandir = TRUE)
 
 ## -----------------------------------------------------------------------------
-# Finds even if misspelled
-cie_search("diabetis with coma", threshold = 0.75)
+# Encuentra aunque este mal escrito
+cie_search("diabetis con coma", threshold = 0.75)
 
 ## ----eval=FALSE---------------------------------------------------------------
-# # Requires: install.packages("comorbidity")
-# patient_df <- data.frame(
-#   patient_id = c(1, 1, 2, 2, 3),
-#   diagnosis = c("E11.0", "I50.9", "C50.9", "N18.5", "J44.0")
+# # Requiere: install.packages("comorbidity")
+# df_pacientes <- data.frame(
+#   id_pac = c(1, 1, 2, 2, 3),
+#   diagnostico = c("E11.0", "I50.9", "C50.9", "N18.5", "J44.0")
 # )
 # 
-# cie_comorbid(patient_df, id = "patient_id", code = "diagnosis", map = "charlson")
+# cie_comorbid(df_pacientes, id = "id_pac", code = "diagnostico", map = "charlson")
 
 ## ----eval=FALSE---------------------------------------------------------------
-# # Requires: install.packages("gt")
-# cie_table("E11")  # Full GT visualization
+# # Requiere: install.packages("gt")
+# cie_table("E11")  # Visualizacion GT completa
 

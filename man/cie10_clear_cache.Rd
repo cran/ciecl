@@ -13,7 +13,18 @@ No return value, called for side effects (deletes SQLite cache).
 Limpiar cache SQLite (forzar rebuild)
 }
 \examples{
-\dontrun{
+# Ver ubicacion del cache
+tools::R_user_dir("ciecl", "data")
+
+\donttest{
 cie10_clear_cache()  # Elimina cie10.db local
 }
 }
+\seealso{
+\code{\link{cie10_sql}}, \code{\link{cie10_disconnect}}
+
+Other sql: 
+\code{\link{cie10_disconnect}()},
+\code{\link{cie10_sql}()}
+}
+\concept{sql}

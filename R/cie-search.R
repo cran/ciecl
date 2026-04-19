@@ -16,7 +16,10 @@ normalizar_tildes <- function(texto) {
   # Usar chartr() que es mas rapido para sustituciones multiples
   # Caracteres con tilde -> sin tilde
   chartr(
-    "\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc\u00f1\u00c1\u00c9\u00cd\u00d3\u00da\u00dc\u00d1",
+    paste0(
+      "\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc\u00f1",
+      "\u00c1\u00c9\u00cd\u00d3\u00da\u00dc\u00d1"
+    ),
     "aeiouunAEIOUUN",
     texto
   )
@@ -31,117 +34,384 @@ get_siglas_medicas <- function() {
   # Retorna lista con categoria incluida: list(sigla = list(termino, categoria))
   list(
     # Cardiovasculares
-    "iam" = list(termino = "infarto agudo miocardio", categoria = "cardiovascular"),
-    "iamcest" = list(termino = "infarto agudo miocardio", categoria = "cardiovascular"),
-    "iamsest" = list(termino = "infarto agudo miocardio", categoria = "cardiovascular"),
-    "sca" = list(termino = "sindrome coronario agudo", categoria = "cardiovascular"),
-    "hta" = list(termino = "hipertension arterial", categoria = "cardiovascular"),
-    "aha" = list(termino = "hipertension arterial", categoria = "cardiovascular"),
-    "icc" = list(termino = "insuficiencia cardiaca", categoria = "cardiovascular"),
-    "ic" = list(termino = "insuficiencia cardiaca", categoria = "cardiovascular"),
-    "fa" = list(termino = "fibrilacion auricular", categoria = "cardiovascular"),
-    "tep" = list(termino = "embolia pulmonar", categoria = "cardiovascular"),
-    "tvp" = list(termino = "trombosis venosa profunda", categoria = "cardiovascular"),
-    "eap" = list(termino = "edema agudo pulmon", categoria = "cardiovascular"),
-    "acv" = list(termino = "accidente cerebrovascular", categoria = "cardiovascular"),
-    "ave" = list(termino = "accidente vascular encefalico", categoria = "cardiovascular"),
-    "ait" = list(termino = "isquemico transitorio", categoria = "cardiovascular"),
+    "iam" = list(
+      termino = "infarto agudo miocardio",
+      categoria = "cardiovascular"
+    ),
+    "iamcest" = list(
+      termino = "infarto agudo miocardio",
+      categoria = "cardiovascular"
+    ),
+    "iamsest" = list(
+      termino = "infarto agudo miocardio",
+      categoria = "cardiovascular"
+    ),
+    "sca" = list(
+      termino = "sindrome coronario agudo",
+      categoria = "cardiovascular"
+    ),
+    "hta" = list(
+      termino = "hipertension arterial",
+      categoria = "cardiovascular"
+    ),
+    "aha" = list(
+      termino = "hipertension arterial",
+      categoria = "cardiovascular"
+    ),
+    "icc" = list(
+      termino = "insuficiencia cardiaca",
+      categoria = "cardiovascular"
+    ),
+    "ic" = list(
+      termino = "insuficiencia cardiaca",
+      categoria = "cardiovascular"
+    ),
+    "fa" = list(
+      termino = "fibrilacion auricular",
+      categoria = "cardiovascular"
+    ),
+    "tep" = list(
+      termino = "embolia pulmonar",
+      categoria = "cardiovascular"
+    ),
+    "tvp" = list(
+      termino = "trombosis venosa profunda",
+      categoria = "cardiovascular"
+    ),
+    "eap" = list(
+      termino = "edema agudo pulmon",
+      categoria = "cardiovascular"
+    ),
+    "acv" = list(
+      termino = "accidente cerebrovascular",
+      categoria = "cardiovascular"
+    ),
+    "ave" = list(
+      termino = "accidente vascular encefalico",
+      categoria = "cardiovascular"
+    ),
+    "ait" = list(
+      termino = "isquemico transitorio",
+      categoria = "cardiovascular"
+    ),
 
     # Respiratorias
-    "tbc" = list(termino = "tuberculosis", categoria = "respiratoria"),
-    "tb" = list(termino = "tuberculosis", categoria = "respiratoria"),
-    "epoc" = list(termino = "enfermedad pulmonar obstructiva cronica", categoria = "respiratoria"),
-    "asma" = list(termino = "asma", categoria = "respiratoria"),
-    "nac" = list(termino = "neumonia", categoria = "respiratoria"),
-    "ira" = list(termino = "infeccion respiratoria aguda", categoria = "respiratoria"),
-    "sdra" = list(termino = "sindrome distres respiratorio", categoria = "respiratoria"),
-    "covid" = list(termino = "covid", categoria = "respiratoria"),
-    "sars" = list(termino = "coronavirus", categoria = "respiratoria"),
+    "tbc" = list(
+      termino = "tuberculosis",
+      categoria = "respiratoria"
+    ),
+    "tb" = list(
+      termino = "tuberculosis",
+      categoria = "respiratoria"
+    ),
+    "epoc" = list(
+      termino = "enfermedad pulmonar obstructiva cronica",
+      categoria = "respiratoria"
+    ),
+    "asma" = list(
+      termino = "asma",
+      categoria = "respiratoria"
+    ),
+    "nac" = list(
+      termino = "neumonia",
+      categoria = "respiratoria"
+    ),
+    "ira" = list(
+      termino = "infeccion respiratoria aguda",
+      categoria = "respiratoria"
+    ),
+    "sdra" = list(
+      termino = "sindrome distres respiratorio",
+      categoria = "respiratoria"
+    ),
+    "covid" = list(
+      termino = "covid",
+      categoria = "respiratoria"
+    ),
+    "sars" = list(
+      termino = "coronavirus",
+      categoria = "respiratoria"
+    ),
 
     # Metabolicas/Endocrinas
-    "dm" = list(termino = "diabetes mellitus", categoria = "metabolica"),
-    "dm1" = list(termino = "diabetes mellitus tipo 1", categoria = "metabolica"),
-    "dm2" = list(termino = "diabetes mellitus tipo 2", categoria = "metabolica"),
-    "dbt" = list(termino = "diabetes", categoria = "metabolica"),
-    "hipo" = list(termino = "hipotiroidismo", categoria = "metabolica"),
-    "hiper" = list(termino = "hipertiroidismo", categoria = "metabolica"),
-    "erc" = list(termino = "enfermedad renal cronica", categoria = "metabolica"),
-    "irc" = list(termino = "insuficiencia renal cronica", categoria = "metabolica"),
-    "ira_renal" = list(termino = "insuficiencia renal aguda", categoria = "metabolica"),
-    "lra" = list(termino = "lesion renal aguda", categoria = "metabolica"),
+    "dm" = list(
+      termino = "diabetes mellitus",
+      categoria = "metabolica"
+    ),
+    "dm1" = list(
+      termino = "diabetes mellitus tipo 1",
+      categoria = "metabolica"
+    ),
+    "dm2" = list(
+      termino = "diabetes mellitus tipo 2",
+      categoria = "metabolica"
+    ),
+    "dbt" = list(
+      termino = "diabetes",
+      categoria = "metabolica"
+    ),
+    "hipo" = list(
+      termino = "hipotiroidismo",
+      categoria = "metabolica"
+    ),
+    "hiper" = list(
+      termino = "hipertiroidismo",
+      categoria = "metabolica"
+    ),
+    "erc" = list(
+      termino = "enfermedad renal cronica",
+      categoria = "metabolica"
+    ),
+    "irc" = list(
+      termino = "insuficiencia renal cronica",
+      categoria = "metabolica"
+    ),
+    "ira_renal" = list(
+      termino = "insuficiencia renal aguda",
+      categoria = "metabolica"
+    ),
+    "lra" = list(
+      termino = "lesion renal aguda",
+      categoria = "metabolica"
+    ),
 
     # Gastrointestinales
-    "hda" = list(termino = "hemorragia digestiva alta", categoria = "gastrointestinal"),
-    "hdb" = list(termino = "hemorragia digestiva baja", categoria = "gastrointestinal"),
-    "rge" = list(termino = "reflujo gastroesofagico", categoria = "gastrointestinal"),
-    "erge" = list(termino = "reflujo gastroesofagico", categoria = "gastrointestinal"),
-    "eii" = list(termino = "enfermedad inflamatoria intestinal", categoria = "gastrointestinal"),
-    "cu" = list(termino = "colitis ulcerosa", categoria = "gastrointestinal"),
-    "ec" = list(termino = "enfermedad crohn", categoria = "gastrointestinal"),
-    "dhc" = list(termino = "dano hepatico cronico", categoria = "gastrointestinal"),
-    "cirrosis" = list(termino = "cirrosis", categoria = "gastrointestinal"),
+    "hda" = list(
+      termino = "hemorragia digestiva alta",
+      categoria = "gastrointestinal"
+    ),
+    "hdb" = list(
+      termino = "hemorragia digestiva baja",
+      categoria = "gastrointestinal"
+    ),
+    "rge" = list(
+      termino = "reflujo gastroesofagico",
+      categoria = "gastrointestinal"
+    ),
+    "erge" = list(
+      termino = "reflujo gastroesofagico",
+      categoria = "gastrointestinal"
+    ),
+    "eii" = list(
+      termino = "enfermedad inflamatoria intestinal",
+      categoria = "gastrointestinal"
+    ),
+    "cu" = list(
+      termino = "colitis ulcerosa",
+      categoria = "gastrointestinal"
+    ),
+    "ec" = list(
+      termino = "enfermedad crohn",
+      categoria = "gastrointestinal"
+    ),
+    "dhc" = list(
+      termino = "dano hepatico cronico",
+      categoria = "gastrointestinal"
+    ),
+    "cirrosis" = list(
+      termino = "cirrosis",
+      categoria = "gastrointestinal"
+    ),
 
     # Infecciosas
-    "vih" = list(termino = "vih", categoria = "infecciosa"),
-    "sida" = list(termino = "sida", categoria = "infecciosa"),
-    "its" = list(termino = "infeccion transmision sexual", categoria = "infecciosa"),
-    "ets" = list(termino = "enfermedad transmision sexual", categoria = "infecciosa"),
-    "itu" = list(termino = "infeccion tracto urinario", categoria = "infecciosa"),
-    "ivu" = list(termino = "infeccion vias urinarias", categoria = "infecciosa"),
-    "meningitis" = list(termino = "meningitis", categoria = "infecciosa"),
-    "sepsis" = list(termino = "sepsis", categoria = "infecciosa"),
+    "vih" = list(
+      termino = "vih",
+      categoria = "infecciosa"
+    ),
+    "sida" = list(
+      termino = "sida",
+      categoria = "infecciosa"
+    ),
+    "its" = list(
+      termino = "infeccion transmision sexual",
+      categoria = "infecciosa"
+    ),
+    "ets" = list(
+      termino = "enfermedad transmision sexual",
+      categoria = "infecciosa"
+    ),
+    "itu" = list(
+      termino = "infeccion tracto urinario",
+      categoria = "infecciosa"
+    ),
+    "ivu" = list(
+      termino = "infeccion vias urinarias",
+      categoria = "infecciosa"
+    ),
+    "meningitis" = list(
+      termino = "meningitis",
+      categoria = "infecciosa"
+    ),
+    "sepsis" = list(
+      termino = "sepsis",
+      categoria = "infecciosa"
+    ),
 
     # Oncologicas
-    "ca" = list(termino = "carcinoma", categoria = "oncologica"),
-    "neo" = list(termino = "neoplasia", categoria = "oncologica"),
-    "lma" = list(termino = "leucemia mieloide aguda", categoria = "oncologica"),
-    "lmc" = list(termino = "leucemia mieloide cronica", categoria = "oncologica"),
-    "lla" = list(termino = "leucemia linfoblastica aguda", categoria = "oncologica"),
-    "llc" = list(termino = "leucemia linfocitica cronica", categoria = "oncologica"),
-    "lnh" = list(termino = "linfoma no hodgkin", categoria = "oncologica"),
-    "lh" = list(termino = "linfoma hodgkin", categoria = "oncologica"),
-    "mm" = list(termino = "mieloma multiple", categoria = "oncologica"),
+    "ca" = list(
+      termino = "carcinoma",
+      categoria = "oncologica"
+    ),
+    "neo" = list(
+      termino = "neoplasia",
+      categoria = "oncologica"
+    ),
+    "lma" = list(
+      termino = "leucemia mieloide aguda",
+      categoria = "oncologica"
+    ),
+    "lmc" = list(
+      termino = "leucemia mieloide cronica",
+      categoria = "oncologica"
+    ),
+    "lla" = list(
+      termino = "leucemia linfoblastica aguda",
+      categoria = "oncologica"
+    ),
+    "llc" = list(
+      termino = "leucemia linfocitica cronica",
+      categoria = "oncologica"
+    ),
+    "lnh" = list(
+      termino = "linfoma no hodgkin",
+      categoria = "oncologica"
+    ),
+    "lh" = list(
+      termino = "linfoma hodgkin",
+      categoria = "oncologica"
+    ),
+    "mm" = list(
+      termino = "mieloma multiple",
+      categoria = "oncologica"
+    ),
 
     # Reumatologicas
-    "ar" = list(termino = "artritis reumatoide", categoria = "reumatologica"),
-    "les" = list(termino = "lupus eritematoso", categoria = "reumatologica"),
-    "fm" = list(termino = "fibromialgia", categoria = "reumatologica"),
-    "ea" = list(termino = "espondilitis anquilosante", categoria = "reumatologica"),
+    "ar" = list(
+      termino = "artritis reumatoide",
+      categoria = "reumatologica"
+    ),
+    "les" = list(
+      termino = "lupus eritematoso",
+      categoria = "reumatologica"
+    ),
+    "fm" = list(
+      termino = "fibromialgia",
+      categoria = "reumatologica"
+    ),
+    "ea" = list(
+      termino = "espondilitis anquilosante",
+      categoria = "reumatologica"
+    ),
 
     # Neurologicas
-    "epi" = list(termino = "epilepsia", categoria = "neurologica"),
-    "parkinson" = list(termino = "parkinson", categoria = "neurologica"),
-    "alzheimer" = list(termino = "alzheimer", categoria = "neurologica"),
-    "em" = list(termino = "esclerosis multiple", categoria = "neurologica"),
-    "ela" = list(termino = "esclerosis lateral amiotrofica", categoria = "neurologica"),
-    "cefalea" = list(termino = "cefalea", categoria = "neurologica"),
-    "migrana" = list(termino = "migrana", categoria = "neurologica"),
+    "epi" = list(
+      termino = "epilepsia",
+      categoria = "neurologica"
+    ),
+    "parkinson" = list(
+      termino = "parkinson",
+      categoria = "neurologica"
+    ),
+    "alzheimer" = list(
+      termino = "alzheimer",
+      categoria = "neurologica"
+    ),
+    "em" = list(
+      termino = "esclerosis multiple",
+      categoria = "neurologica"
+    ),
+    "ela" = list(
+      termino = "esclerosis lateral amiotrofica",
+      categoria = "neurologica"
+    ),
+    "cefalea" = list(
+      termino = "cefalea",
+      categoria = "neurologica"
+    ),
+    "migrana" = list(
+      termino = "migrana",
+      categoria = "neurologica"
+    ),
 
     # Psiquiatricas
-    "tdah" = list(termino = "deficit atencion hiperactividad", categoria = "psiquiatrica"),
-    "toc" = list(termino = "obsesivo compulsivo", categoria = "psiquiatrica"),
-    "tag" = list(termino = "ansiedad generalizada", categoria = "psiquiatrica"),
-    "tept" = list(termino = "estres postraumatico", categoria = "psiquiatrica"),
-    "edm" = list(termino = "depresion mayor", categoria = "psiquiatrica"),
-    "tab" = list(termino = "trastorno bipolar", categoria = "psiquiatrica"),
+    "tdah" = list(
+      termino = "deficit atencion hiperactividad",
+      categoria = "psiquiatrica"
+    ),
+    "toc" = list(
+      termino = "obsesivo compulsivo",
+      categoria = "psiquiatrica"
+    ),
+    "tag" = list(
+      termino = "ansiedad generalizada",
+      categoria = "psiquiatrica"
+    ),
+    "tept" = list(
+      termino = "estres postraumatico",
+      categoria = "psiquiatrica"
+    ),
+    "edm" = list(
+      termino = "depresion mayor",
+      categoria = "psiquiatrica"
+    ),
+    "tab" = list(
+      termino = "trastorno bipolar",
+      categoria = "psiquiatrica"
+    ),
 
     # Traumatologicas
-    "tec" = list(termino = "traumatismo craneoencefalico", categoria = "traumatologica"),
-    "fx" = list(termino = "fractura", categoria = "traumatologica"),
-    "lca" = list(termino = "ligamento cruzado anterior", categoria = "traumatologica"),
+    "tec" = list(
+      termino = "traumatismo craneoencefalico",
+      categoria = "traumatologica"
+    ),
+    "fx" = list(
+      termino = "fractura",
+      categoria = "traumatologica"
+    ),
+    "lca" = list(
+      termino = "ligamento cruzado anterior",
+      categoria = "traumatologica"
+    ),
 
     # Pediatricas
-    "sbo" = list(termino = "sindrome bronquial obstructivo", categoria = "pediatrica"),
-    "eda" = list(termino = "enfermedad diarreica aguda", categoria = "pediatrica"),
-    "gea" = list(termino = "gastroenteritis aguda", categoria = "pediatrica"),
+    "sbo" = list(
+      termino = "sindrome bronquial obstructivo",
+      categoria = "pediatrica"
+    ),
+    "eda" = list(
+      termino = "enfermedad diarreica aguda",
+      categoria = "pediatrica"
+    ),
+    "gea" = list(
+      termino = "gastroenteritis aguda",
+      categoria = "pediatrica"
+    ),
 
     # Gineco-obstetricias
-    "sop" = list(termino = "sindrome ovario poliquistico", categoria = "gineco_obstetrica"),
-    "epi_gineco" = list(termino = "enfermedad pelvica inflamatoria", categoria = "gineco_obstetrica"),
-    "hie" = list(termino = "hipertension embarazo", categoria = "gineco_obstetrica"),
-    "pe" = list(termino = "preeclampsia", categoria = "gineco_obstetrica"),
-    "dpp" = list(termino = "desprendimiento prematuro placenta", categoria = "gineco_obstetrica"),
-    "rciu" = list(termino = "restriccion crecimiento intrauterino", categoria = "gineco_obstetrica")
+    "sop" = list(
+      termino = "sindrome ovario poliquistico",
+      categoria = "gineco_obstetrica"
+    ),
+    "epi_gineco" = list(
+      termino = "enfermedad pelvica inflamatoria",
+      categoria = "gineco_obstetrica"
+    ),
+    "hie" = list(
+      termino = "hipertension embarazo",
+      categoria = "gineco_obstetrica"
+    ),
+    "pe" = list(
+      termino = "preeclampsia",
+      categoria = "gineco_obstetrica"
+    ),
+    "dpp" = list(
+      termino = "desprendimiento prematuro placenta",
+      categoria = "gineco_obstetrica"
+    ),
+    "rciu" = list(
+      termino = "restriccion crecimiento intrauterino",
+      categoria = "gineco_obstetrica"
+    )
   )
 }
 
@@ -193,8 +463,9 @@ sigla_to_codigo <- function(sigla) {
 #' @keywords internal
 #' @noRd
 extract_cie_from_text <- function(texto) {
-  # Fix #2: Patrón estricto para extraer código CIE-10: letra + 2-3 digitos + punto opcional + 0-2 digitos
-  # Solo extrae si está rodeado de no-alfanuméricos o en extremos
+  # Fix #2: Patron estricto para extraer codigo CIE-10:
+  # letra + 2-3 digitos + punto opcional + 0-2 digitos
+  # Solo extrae si esta rodeado de no-alfanumericos o en extremos
   patron <- "(?:^|[^A-Z0-9])([A-Z][0-9]{2}[0-9]?\\.?[0-9X]{0,2})(?:$|[^A-Z0-9])"
   
   extraido <- stringr::str_extract(toupper(texto), patron)
@@ -224,6 +495,8 @@ extract_cie_from_text <- function(texto) {
 #'   "psiquiatrica", "traumatologica", "pediatrica", "gineco_obstetrica".
 #'   Si es NULL (default), retorna todas las siglas.
 #' @return tibble con columnas: sigla, termino_busqueda, categoria
+#' @family busqueda
+#' @seealso \code{\link{cie_search}}, \code{\link{cie_lookup}}
 #' @export
 #' @examples
 #' # Ver todas las siglas
@@ -240,8 +513,8 @@ cie_siglas <- function(categoria = NULL) {
 
   resultado <- tibble::tibble(
     sigla = names(siglas),
-    termino_busqueda = sapply(siglas, function(x) x$termino),
-    categoria = sapply(siglas, function(x) x$categoria)
+    termino_busqueda = vapply(siglas, function(x) x$termino, character(1)),
+    categoria = vapply(siglas, function(x) x$categoria, character(1))
   )
 
   # Filtrar por categoria si se especifica
@@ -251,7 +524,8 @@ cie_siglas <- function(categoria = NULL) {
 
     if (!categoria %in% categorias_validas) {
       warning("Categoria '", categoria, "' no encontrada. ",
-              "Categorias validas: ", paste(categorias_validas, collapse = ", "))
+              "Categorias validas: ",
+              paste(categorias_validas, collapse = ", "))
       return(resultado[0, ])
     }
 
@@ -271,14 +545,22 @@ cie_siglas <- function(categoria = NULL) {
 #' La busqueda es tolerante a tildes: "neumonia" encuentra "neumonia".
 #' Soporta siglas medicas comunes: "IAM" busca "infarto agudo miocardio".
 #'
-#' @param texto String termino medico en espanol o sigla (ej. "diabetes", "IAM", "TBC")
-#' @param threshold Numeric entre 0 y 1, umbral similitud Jaro-Winkler (default 0.70)
+#' @param texto String termino medico en espanol o sigla
+#'   (ej. "diabetes", "IAM", "TBC")
+#' @param threshold Numeric entre 0 y 1, umbral similitud
+#'   Jaro-Winkler (default 0.70)
 #' @param max_results Integer, maximo resultados a retornar (default 50)
 #' @param campo Character, campo busqueda ("descripcion" o "inclusion")
-#' @param solo_fuzzy Logical, usar solo busqueda fuzzy sin busqueda exacta (default FALSE)
-#' @param verbose Logical, mostrar mensajes informativos (default TRUE). Usar FALSE en scripts.
+#' @param solo_fuzzy Logical, usar solo busqueda fuzzy
+#'   sin busqueda exacta (default FALSE)
+#' @param verbose Logical, mostrar mensajes informativos
+#'   (default TRUE). Usar FALSE en scripts.
 #' @return tibble ordenado por score descendente (1.0 = coincidencia exacta).
-#'   Incluye atributo "sigla_expandida" si se uso una sigla.
+#'   Si el texto corresponde a una sigla medica, se expande
+#'   automaticamente antes de buscar.
+#' @family busqueda
+#' @seealso \code{\link{cie_lookup}},
+#'   \code{\link{cie_siglas}}, \code{\link{cie10_sql}}
 #' @export
 #' @importFrom stringdist stringsim
 #' @importFrom dplyr mutate filter arrange desc slice_head select everything %>%
@@ -325,15 +607,19 @@ cie_search <- function(texto, threshold = 0.70, max_results = 50,
   # Verificar si es una sigla medica y expandirla
   sigla_expandida <- expandir_sigla(texto_limpio)
   texto_busqueda <- if (!is.null(sigla_expandida)) {
-    if (verbose) message("i Sigla detectada: ", toupper(texto_limpio), " -> ", sigla_expandida)
+    if (verbose) {
+      message(
+        "i Sigla detectada: ",
+        toupper(texto_limpio), " -> ", sigla_expandida
+      )
+    }
     sigla_expandida
   } else {
     texto_limpio
   }
 
-  # Conexion segura con auto-cierre
+  # Conexion pooled (no cerrar, gestionada por .ciecl_env)
   con <- get_cie10_db()
-  on.exit(DBI::dbDisconnect(con), add = TRUE)
 
   # Normalizar texto de busqueda (minusculas + sin tildes)
   texto_norm <- tolower(texto_busqueda)
@@ -344,6 +630,7 @@ cie_search <- function(texto, threshold = 0.70, max_results = 50,
   palabras <- palabras[nchar(palabras) >= 2]
 
   # Pre-filtrar usando FTS5 para velocidad
+  query_params <- NULL
   if (length(palabras) > 0) {
     # Sanitizar palabras para FTS5 (prevenir SQL injection)
     # Solo permitir alfanumericos y acentos normalizados
@@ -353,26 +640,29 @@ cie_search <- function(texto, threshold = 0.70, max_results = 50,
     if (length(palabras_fts) > 0) {
       # Construir query FTS5: palabra1* OR palabra2*
       texto_fts <- paste0(palabras_fts, "*", collapse = " OR ")
+      query_params <- list(texto_fts)
 
       if (campo == "descripcion") {
-        query_sql <- sprintf("
+        query_sql <- "
           SELECT c.codigo, c.descripcion, c.categoria
           FROM cie10 c
-          WHERE c.rowid IN (SELECT rowid FROM cie10_fts WHERE cie10_fts MATCH '%s')
-        ", texto_fts)
+          WHERE c.rowid IN (SELECT rowid FROM cie10_fts WHERE cie10_fts MATCH ?)
+        "
       } else {
         query_sql <- sprintf("
           SELECT c.codigo, c.descripcion, c.categoria, c.%s
           FROM cie10 c
-          WHERE c.rowid IN (SELECT rowid FROM cie10_fts WHERE cie10_fts MATCH '%s')
-        ", campo, texto_fts)
+          WHERE c.rowid IN (SELECT rowid FROM cie10_fts WHERE cie10_fts MATCH ?)
+        ", campo)
       }
     } else {
       # Sin palabras validas tras sanitizar, cargar todo
       if (campo == "descripcion") {
         query_sql <- "SELECT codigo, descripcion, categoria FROM cie10"
       } else {
-        query_sql <- sprintf("SELECT codigo, descripcion, categoria, %s FROM cie10", campo)
+        query_sql <- sprintf(
+          "SELECT codigo, descripcion, categoria, %s FROM cie10",
+          campo)
       }
     }
   } else {
@@ -380,20 +670,26 @@ cie_search <- function(texto, threshold = 0.70, max_results = 50,
     if (campo == "descripcion") {
       query_sql <- "SELECT codigo, descripcion, categoria FROM cie10"
     } else {
-      query_sql <- sprintf("SELECT codigo, descripcion, categoria, %s FROM cie10", campo)
+      query_sql <- sprintf(
+        "SELECT codigo, descripcion, categoria, %s FROM cie10",
+        campo)
     }
   }
 
-  base <- DBI::dbGetQuery(con, query_sql) %>% tibble::as_tibble()
+  base <- DBI::dbGetQuery(con, query_sql, params = query_params) %>%
+    tibble::as_tibble()
 
   # Si FTS5 no retorno resultados, intentar carga completa para fuzzy
   if (nrow(base) == 0 && length(palabras) > 0) {
     if (campo == "descripcion") {
       query_sql <- "SELECT codigo, descripcion, categoria FROM cie10"
     } else {
-      query_sql <- sprintf("SELECT codigo, descripcion, categoria, %s FROM cie10", campo)
+      query_sql <- sprintf(
+        "SELECT codigo, descripcion, categoria, %s FROM cie10",
+        campo)
     }
-    base <- DBI::dbGetQuery(con, query_sql) %>% tibble::as_tibble()
+    base <- DBI::dbGetQuery(con, query_sql) %>%
+      tibble::as_tibble()
   }
 
   # Normalizar texto de la base (minusculas + sin tildes)
@@ -423,14 +719,14 @@ cie_search <- function(texto, threshold = 0.70, max_results = 50,
 
   if (length(palabras_fuzzy) > 0) {
     # Calcular score basado en cuantas palabras coinciden
-    scores_palabras <- sapply(seq_along(base_texto_sin_tildes), function(i) {
+    scores_palabras <- vapply(seq_along(base_texto_sin_tildes), function(i) {
       texto_base <- base_texto_sin_tildes[i]
       # Contar palabras que aparecen en la descripcion
-      matches <- sapply(palabras_fuzzy, function(p) {
+      matches <- vapply(palabras_fuzzy, function(p) {
         stringr::str_detect(texto_base, stringr::fixed(p))
-      })
+      }, logical(1))
       sum(matches) / length(palabras_fuzzy)
-    })
+    }, numeric(1))
 
     # Si hay coincidencias parciales de palabras
     if (any(scores_palabras > 0)) {
@@ -449,7 +745,7 @@ cie_search <- function(texto, threshold = 0.70, max_results = 50,
 
   # ESTRATEGIA 3: Fuzzy matching con Jaro-Winkler (para typos)
   # Calcular similitud de cada palabra del texto con palabras de la descripcion
-  scores_fuzzy <- sapply(seq_along(base_texto_sin_tildes), function(i) {
+  scores_fuzzy <- vapply(seq_along(base_texto_sin_tildes), function(i) {
     texto_base <- base_texto_sin_tildes[i]
     palabras_base <- unlist(stringr::str_split(texto_base, "\\s+"))
     palabras_base <- palabras_base[nchar(palabras_base) >= 3]
@@ -457,13 +753,13 @@ cie_search <- function(texto, threshold = 0.70, max_results = 50,
     if (length(palabras_base) == 0) return(0)
 
     # Para cada palabra del texto buscar la mejor coincidencia en la descripcion
-    best_scores <- sapply(palabras_fuzzy, function(p) {
+    best_scores <- vapply(palabras_fuzzy, function(p) {
       if (length(palabras_base) == 0) return(0)
       max(stringdist::stringsim(p, palabras_base, method = "jw"))
-    })
+    }, numeric(1))
 
     mean(best_scores)
-  })
+  }, numeric(1))
 
   # Filtrar + ordenar resultados fuzzy
   resultado <- base %>%
@@ -482,21 +778,33 @@ cie_search <- function(texto, threshold = 0.70, max_results = 50,
 
 #' Busqueda exacta por codigo CIE-10
 #'
-#' @param codigo Character vector de codigos (ej. "E11", "E11.0", c("E11.0", "Z00"))
-#'   o rango (ej. "E10-E14"). Acepta vectores de multiples codigos.
-#'   Soporta formatos: con punto (E11.0), sin punto (E110), o solo categoria (E11).
+#' @param codigo Character vector de codigos
+#'   (ej. "E11", "E11.0", c("E11.0", "Z00"))
+#'   o rango (ej. "E10-E14"). Acepta vectores.
+#'   Soporta formatos: con punto (E11.0),
+#'   sin punto (E110), o solo categoria (E11).
 #' @param expandir Logical, expandir jerarquia completa (default FALSE)
-#' @param normalizar Logical, normalizar formato de codigos automaticamente (default TRUE)
-#' @param descripcion_completa Logical, agregar columna descripcion_completa con formato "CODIGO - DESCRIPCION" (default FALSE)
-#' @param extract Logical, extraer codigo CIE-10 de texto con prefijos/sufijos (default FALSE).
-#'   IMPORTANTE: Solo usar con codigo ESCALAR (longitud 1). Ejemplo: "CIE:E11.0" -> "E11.0", "E11.0-confirmado" -> "E11.0".
+#' @param normalizar Logical, normalizar formato de codigos
+#'   automaticamente (default TRUE)
+#' @param descripcion_completa Logical, agregar columna descripcion_completa
+#'   con formato "CODIGO - DESCRIPCION" (default FALSE)
+#' @param extract Logical, extraer codigo CIE-10 de texto con
+#'   prefijos/sufijos (default FALSE).
+#'   IMPORTANTE: Solo usar con codigo ESCALAR (longitud 1).
+#'   Ejemplo: "CIE:E11.0" -> "E11.0", "E11.0-confirmado" -> "E11.0".
 #'   Para vectores multiples usar extract=FALSE (default).
 #' @param check_siglas Logical, buscar siglas medicas comunes (default FALSE).
 #'   Ejemplo: "IAM" -> I21.0 (Infarto agudo miocardio)
 #' @return tibble con codigo(s) matcheado(s)
+#' @family busqueda
+#' @seealso \code{\link{cie_search}},
+#'   \code{\link{cie_normalizar}}, \code{\link{cie_expand}}
 #' @export
 #' @examples
-#' cie_lookup("E11.0")       # Con punto
+#' # Busqueda directa por codigo
+#' cie_lookup("E11.0")
+#'
+#' \donttest{
 #' cie_lookup("E110")        # Sin punto
 #' cie_lookup("E11")         # Solo categoria
 #' cie_lookup("E11", expandir = TRUE)  # Todos E11.x
@@ -507,12 +815,13 @@ cie_search <- function(texto, threshold = 0.70, max_results = 50,
 #' # Extraer codigo de texto con ruido (solo codigo escalar)
 #' cie_lookup("CIE:E11.0", extract = TRUE)
 #' cie_lookup("E11.0-confirmado", extract = TRUE)
-#' # Nota: Para vectores multiples usar extract=FALSE (default)
 #' # Buscar por siglas medicas
 #' cie_lookup("IAM", check_siglas = TRUE)
 #' cie_lookup("DM2", check_siglas = TRUE)
-#' cie_lookup("EPOC", check_siglas = TRUE)
-cie_lookup <- function(codigo, expandir = FALSE, normalizar = TRUE, descripcion_completa = FALSE, extract = FALSE, check_siglas = FALSE) {
+#' }
+cie_lookup <- function(codigo, expandir = FALSE, normalizar = TRUE,
+                       descripcion_completa = FALSE, extract = FALSE,
+                       check_siglas = FALSE) {
   # Manejar vector vacio
 
   if (length(codigo) == 0) {
@@ -527,7 +836,7 @@ cie_lookup <- function(codigo, expandir = FALSE, normalizar = TRUE, descripcion_
 
   # Normalizar entrada
   codigo_input <- stringr::str_trim(toupper(codigo_sin_na))
-  # Fix #1: Normalizar espacios en códigos
+  # Fix #1: Normalizar espacios en codigos
   codigo_input <- gsub("\\s+", "", codigo_input)
   
   # Extraer codigo de texto con ruido (prefijos/sufijos)
@@ -537,21 +846,28 @@ cie_lookup <- function(codigo, expandir = FALSE, normalizar = TRUE, descripcion_
   
   # Buscar siglas medicas
   if (check_siglas) {
-    codigo_input <- sapply(codigo_input, function(x) {
+    codigo_input <- vapply(codigo_input, function(x) {
       codigo_sigla <- sigla_to_codigo(x)
       if (!is.null(codigo_sigla)) {
         return(codigo_sigla)
       }
       return(x)
-    }, USE.NAMES = FALSE)
+    }, character(1), USE.NAMES = FALSE)
   }
   
-  # Normalizar formato si se solicita: agregar punto si falta (E110 -> E11.0)
+  # Normalizar formato si se solicita
+  # (elimina sufijo X DEIS, agrega punto, etc.)
+  # Preservar rangos (guion entre codigos) antes de normalizar,
+  # ya que cie_normalizar convierte guiones a puntos
   if (normalizar) {
+    es_rango_input <- stringr::str_detect(
+      codigo_input,
+      "^[A-Z][0-9.]{2,}-[A-Z][0-9.]{2,}$"
+    )
     codigo_norm <- ifelse(
-      stringr::str_detect(codigo_input, "^[A-Z]\\d{3,}$") & !stringr::str_detect(codigo_input, "\\."),
-      stringr::str_replace(codigo_input, "^([A-Z]\\d{2})(\\d.*)$", "\\1.\\2"),
-      codigo_input
+      es_rango_input,
+      codigo_input,
+      cie_normalizar(codigo_input, buscar_db = FALSE)
     )
   } else {
     codigo_norm <- codigo_input
@@ -572,23 +888,41 @@ cie_lookup <- function(codigo, expandir = FALSE, normalizar = TRUE, descripcion_
     # Query batch para codigos normales (sin rangos)
     if (length(codigos_normales) > 0) {
       # Sanitizar codigos (solo alfanumericos y punto)
-      codigos_safe <- codigos_normales[stringr::str_detect(codigos_normales, "^[A-Za-z0-9.]+$")]
+      codigos_safe <- codigos_normales[
+        stringr::str_detect(
+          codigos_normales, "^[A-Za-z0-9.]+$"
+        )
+      ]
 
       if (length(codigos_safe) > 0) {
         con <- get_cie10_db()
-        on.exit(DBI::dbDisconnect(con), add = TRUE)
 
         if (expandir) {
-          # Expandir: usar LIKE para cada codigo
-          likes <- paste0("codigo LIKE '", codigos_safe, "%'", collapse = " OR ")
-          query <- sprintf("SELECT * FROM cie10 WHERE %s ORDER BY codigo", likes)
+          # Expandir: LIKE parametrizado por cada codigo
+          placeholders <- paste(
+            rep("codigo LIKE ?", length(codigos_safe)),
+            collapse = " OR "
+          )
+          query <- sprintf(
+            "SELECT * FROM cie10 WHERE %s ORDER BY codigo",
+            placeholders
+          )
+          params <- paste0(codigos_safe, "%")
+          resultado <- DBI::dbGetQuery(
+            con, query, params = as.list(params)
+          ) %>% tibble::as_tibble()
         } else {
-          # Exacto: usar IN clause
-          codigos_sql <- paste0("'", codigos_safe, "'", collapse = ",")
-          query <- sprintf("SELECT * FROM cie10 WHERE codigo IN (%s)", codigos_sql)
+          # Exacto: IN clause parametrizada
+          placeholders <- paste(rep("?", length(codigos_safe)),
+                                collapse = ",")
+          query <- sprintf(
+            "SELECT * FROM cie10 WHERE codigo IN (%s)",
+            placeholders
+          )
+          resultado <- DBI::dbGetQuery(
+            con, query, params = as.list(codigos_safe)
+          ) %>% tibble::as_tibble()
         }
-
-        resultado <- DBI::dbGetQuery(con, query) %>% tibble::as_tibble()
       }
     }
 
@@ -597,7 +931,9 @@ cie_lookup <- function(codigo, expandir = FALSE, normalizar = TRUE, descripcion_
       resultados_rango <- lapply(codigos_rango, function(cod) {
         cie_lookup_single(cod, expandir = expandir)
       })
-      resultado <- dplyr::bind_rows(resultado, dplyr::bind_rows(resultados_rango))
+      resultado <- dplyr::bind_rows(
+        resultado, dplyr::bind_rows(resultados_rango)
+      )
     }
 
     # Eliminar duplicados
@@ -615,8 +951,9 @@ cie_lookup <- function(codigo, expandir = FALSE, normalizar = TRUE, descripcion_
           descripcion_completa = paste0(codigo, " - ", descripcion)
         )
     } else {
-      # Asegurar que la columna existe incluso cuando el resultado está vacío
-      # Necesitamos usar tibble::add_column() para mantener la estructura de tibble
+      # Asegurar que la columna existe incluso cuando el resultado esta vacio
+      # Necesitamos usar tibble::add_column()
+      # para mantener la estructura de tibble
       resultado <- resultado %>%
         tibble::add_column(descripcion_completa = character(0))
     }
@@ -645,20 +982,23 @@ cie_lookup_single <- function(codigo_norm, expandir = FALSE) {
   }
 
   # Sanitizar entrada para prevenir SQL injection
-  # Solo permitir caracteres validos para codigos CIE-10: letras, numeros, punto, guion
+  # Solo permitir caracteres validos para codigos CIE-10:
+  # letras, numeros, punto, guion
   if (!stringr::str_detect(codigo_norm, "^[A-Za-z0-9.\\-]+$")) {
     message("x Codigo con caracteres invalidos: ", codigo_norm)
     return(cie10_empty_tibble())
   }
 
-  # Conexion con queries parametrizadas (previene SQL injection)
+  # Conexion pooled (queries parametrizadas, previene SQL injection)
   con <- get_cie10_db()
-  on.exit(DBI::dbDisconnect(con), add = TRUE)
 
   if (expandir) {
     # Buscar jerarquia completa (E11 -> E11.x)
     query <- "SELECT * FROM cie10 WHERE codigo LIKE ? ORDER BY codigo"
-    resultado <- DBI::dbGetQuery(con, query, params = list(paste0(codigo_norm, "%")))
+    resultado <- DBI::dbGetQuery(
+      con, query,
+      params = list(paste0(codigo_norm, "%"))
+    )
   } else if (stringr::str_detect(codigo_norm, "-")) {
     # Rango (ej. "E10-E14")
     partes <- stringr::str_split(codigo_norm, "-")[[1]]
@@ -684,8 +1024,8 @@ cie_lookup_single <- function(codigo_norm, expandir = FALSE) {
 
   resultado <- tibble::as_tibble(resultado)
 
-  # Fix #3: Validar estrictamente códigos inválidos
-  # Solo códigos CIE-10 válidos existen en la base
+  # Fix #3: Validar estrictamente codigos invalidos
+  # Solo codigos CIE-10 validos existen en la base
   if (nrow(resultado) == 0) {
     message("x Codigo no encontrado: ", codigo_norm)
     return(cie10_empty_tibble())
@@ -698,7 +1038,10 @@ cie_lookup_single <- function(codigo_norm, expandir = FALSE) {
 #'
 #' Muestra tabla comparativa de cuando usar cada funcion de busqueda.
 #'
-#' @return data.frame con guia de uso
+#' @return tibble con guia comparativa de funciones de busqueda
+#' @family busqueda
+#' @seealso \code{\link{cie_search}},
+#'   \code{\link{cie_lookup}}, \code{\link{cie_siglas}}
 #' @export
 #' @examples
 #' cie_guia_busqueda()
@@ -722,7 +1065,7 @@ cie_guia_busqueda <- function() {
       "cie_lookup() o cie_lookup(expandir = TRUE)",
       "cie_search()",
       "cie_lookup(check_siglas = TRUE)",
-      "cie_buscar() (experimental)"
+      "cie_search() con threshold bajo"
     ),
     `Ejemplo` = c(
       'cie_lookup("E11.0")',
@@ -732,11 +1075,11 @@ cie_guia_busqueda <- function() {
       'cie_lookup("E11")',
       'cie_search("diabetes")',
       'cie_lookup("IAM", check_siglas = TRUE)',
-      'pronto disponible'
+      'cie_search("dolor", threshold = 0.5)'
     ),
     check.names = FALSE,
     stringsAsFactors = FALSE
   )
-  
-  return(guia)
+
+  return(tibble::as_tibble(guia))
 }

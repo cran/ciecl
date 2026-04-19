@@ -4,7 +4,13 @@
 \alias{cie11_search}
 \title{Buscar codigos CIE-11 via API OMS}
 \usage{
-cie11_search(texto, api_key = NULL, lang = "es", max_results = 10)
+cie11_search(
+  texto,
+  api_key = NULL,
+  lang = "es",
+  max_results = 10,
+  release = "2024-01"
+)
 }
 \arguments{
 \item{texto}{String termino busqueda espanol/ingles}
@@ -15,6 +21,9 @@ Obtener en: https://icd.who.int/icdapi}
 \item{lang}{Character, idioma respuesta ("es" o "en")}
 
 \item{max_results}{Integer, maximo resultados (default 10)}
+
+\item{release}{Character, version de release CIE-11 a consultar
+(default "2024-01"). Ver releases disponibles en la API OMS.}
 }
 \value{
 tibble con codigos CIE-11 + titulos o vacio si error
@@ -23,9 +32,16 @@ tibble con codigos CIE-11 + titulos o vacio si error
 Buscar codigos CIE-11 via API OMS
 }
 \examples{
-\dontrun{
-# Requiere credenciales OMS gratuitas
+# Ver parametros disponibles
+args(cie11_search)
+
+\donttest{
+# Requiere credenciales OMS gratuitas (https://icd.who.int/icdapi)
 Sys.setenv(ICD_API_KEY = "client_id:client_secret")
 cie11_search("depresion mayor")
 }
 }
+\seealso{
+\code{\link{cie_search}}, \code{\link{cie_lookup}}
+}
+\concept{api}

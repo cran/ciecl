@@ -1,9 +1,9 @@
 # test-edge-cases.R
 # Pruebas exhaustivas para edge cases y entradas problematicas
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS PARA cie_search()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_search rechaza NA, vectores y tipos invalidos", {
   skip_on_cran()
@@ -99,9 +99,9 @@ test_that("cie_search maneja campo invalido", {
   expect_error(cie_search("diabetes", campo = "inexistente"))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS PARA cie_lookup()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_lookup maneja NA en entrada", {
   skip_on_cran()
@@ -183,8 +183,7 @@ test_that("cie_lookup maneja codigo con caracteres SQL peligrosos", {
   codigos_peligrosos <- c(
     "E11'; DROP TABLE cie10;--",
     "E11.0 OR 1=1",
-    "E11%",
-    "E11*"
+    "E11%"
   )
 
   for (cod in codigos_peligrosos) {
@@ -195,6 +194,14 @@ test_that("cie_lookup maneja codigo con caracteres SQL peligrosos", {
     expect_s3_class(resultado, "tbl_df")
     expect_equal(nrow(resultado), 0)
   }
+
+  # E11* se normaliza a E11 (asterisco = codificacion dual, se elimina)
+  # por lo tanto encuentra resultados legitimamente
+  suppressMessages({
+    resultado_ast <- cie_lookup("E11*")
+  })
+  expect_s3_class(resultado_ast, "tbl_df")
+  expect_gt(nrow(resultado_ast), 0)
 })
 
 test_that("cie_lookup expandir con codigo inexistente", {
@@ -207,9 +214,9 @@ test_that("cie_lookup expandir con codigo inexistente", {
   expect_equal(nrow(resultado), 0)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS PARA cie_normalizar()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_normalizar maneja NA", {
   skip_on_cran()
@@ -262,9 +269,9 @@ test_that("cie_normalizar maneja codigos largos", {
   expect_equal(resultado, "E11.00")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS PARA cie_validate_vector()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_validate_vector maneja NA", {
   # NA debe ser FALSE
@@ -305,7 +312,6 @@ test_that("cie_validate_vector rechaza formatos invalidos", {
     "E1",         # Muy corto
     "EE11",       # Letra duplicada
     "E11.111",    # Demasiados decimales
-    "E11..0",     # Punto duplicado
     "1E11",       # Numero al inicio
     ""            # Vacio
   )
@@ -314,10 +320,12 @@ test_that("cie_validate_vector rechaza formatos invalidos", {
   expect_true(all(!resultado))
 })
 
-test_that("cie_validate_vector maneja minusculas", {
-  # Debe funcionar con minusculas
-  resultado <- cie_validate_vector("e11.0")
-  expect_true(resultado)
+test_that("cie_validate_vector normaliza antes de validar", {
+  # Punto duplicado se normaliza a valido (E11..0 -> E11.0)
+  expect_true(cie_validate_vector("E11..0"))
+
+  # Minusculas se normalizan
+  expect_true(cie_validate_vector("e11.0"))
 })
 
 test_that("cie_validate_vector strict mode", {
@@ -335,9 +343,9 @@ test_that("cie_validate_vector strict mode", {
   expect_false(resultado[3])
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS PARA cie_expand()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_expand maneja codigo vacio", {
   skip_on_cran()
@@ -379,9 +387,9 @@ test_that("cie_expand retorna hijos correctos", {
   expect_true("E11.0" %in% hijos || any(stringr::str_detect(hijos, "^E11\\.0")))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS PARA cie_map_comorbid()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_map_comorbid maneja vector vacio", {
   resultado <- cie_map_comorbid(character(0))
@@ -420,9 +428,9 @@ test_that("cie_map_comorbid categoriza correctamente multiples codigos", {
   expect_equal(resultado$categoria[resultado$codigo == "Z00.0"], "Otra")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS PARA cie_comorbid()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_comorbid rechaza dataframe vacio", {
   skip_on_cran()
@@ -493,9 +501,9 @@ test_that("cie_comorbid maneja codigos con NA", {
   })
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS PARA cie10_sql()
-# ==============================================================================
+# ============================================================
 
 test_that("cie10_sql bloquea queries UPDATE", {
   expect_error(

@@ -30,3 +30,12 @@ cie_siglas("oncologica")
 # Buscar una sigla especifica
 cie_siglas() |> dplyr::filter(sigla == "iam")
 }
+\seealso{
+\code{\link{cie_search}}, \code{\link{cie_lookup}}
+
+Other busqueda: 
+\code{\link{cie_guia_busqueda}()},
+\code{\link{cie_lookup}()},
+\code{\link{cie_search}()}
+}
+\concept{busqueda}

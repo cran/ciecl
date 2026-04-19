@@ -1,9 +1,9 @@
 # test-comorbid-validation.R
 # Pruebas de validacion de comorbilidades con datos sinteticos
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS cie_comorbid() - CHARLSON
-# ==============================================================================
+# ============================================================
 
 test_that("cie_comorbid calcula Charlson con datos sinteticos", {
   skip_on_cran()
@@ -119,9 +119,9 @@ test_that("cie_comorbid usa assign0 correctamente", {
   expect_equal(nrow(resultado), 2)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS cie_map_comorbid()
-# ==============================================================================
+# ============================================================
 
 test_that("cie_map_comorbid categoriza diabetes correctamente", {
   # Solo E10 y E11 estan en el mapeo de cie_map_comorbid
@@ -212,9 +212,9 @@ test_that("cie_map_comorbid maneja codigos mixtos", {
   expect_equal(resultado$categoria[resultado$codigo == "Z00.0"], "Otra")
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS CON MULTIPLES COMORBILIDADES POR PACIENTE
-# ==============================================================================
+# ============================================================
 
 test_that("cie_comorbid maneja paciente con muchos codigos", {
   skip_on_cran()
@@ -259,9 +259,9 @@ test_that("cie_comorbid distingue pacientes correctamente", {
   expect_gte(score_pac2, score_pac3)
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE CONSISTENCIA ENTRE FUNCIONES
-# ==============================================================================
+# ============================================================
 
 test_that("cie_map_comorbid y cie_comorbid son consistentes", {
   skip_on_cran()

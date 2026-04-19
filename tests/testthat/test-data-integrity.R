@@ -1,9 +1,9 @@
 # test-data-integrity.R
 # Pruebas de integridad del dataset cie10_cl
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE ESTRUCTURA DEL DATASET
-# ==============================================================================
+# ============================================================
 
 test_that("cie10_cl tiene estructura correcta", {
   # Cargar dataset
@@ -73,9 +73,9 @@ test_that("cie10_cl no tiene descripciones NA o vacias", {
   expect_equal(n_empty, 0, info = paste("Descripciones vacias:", n_empty))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE FORMATO DE CODIGOS
-# ==============================================================================
+# ============================================================
 
 test_that("codigos siguen formato CIE-10 valido", {
   data(cie10_cl, package = "ciecl", envir = environment())
@@ -111,9 +111,9 @@ test_that("todos los capitulos estan representados", {
                            paste(setdiff(principales, capitulos), collapse = ", ")))
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE CODIGOS ESPECIFICOS CONOCIDOS
-# ==============================================================================
+# ============================================================
 
 test_that("codigos diabetes existen", {
   data(cie10_cl, package = "ciecl", envir = environment())
@@ -164,9 +164,9 @@ test_that("codigos COVID-19 existen", {
   }
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE COLUMNAS DAGA/CRUZ
-# ==============================================================================
+# ============================================================
 
 test_that("columnas es_daga y es_cruz son consistentes", {
   data(cie10_cl, package = "ciecl", envir = environment())

@@ -28,9 +28,9 @@ test_that("cie11_search requiere httr2", {
   )
 })
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS CON API REAL (skip_on_cran, requiere ICD_API_KEY)
-# ==============================================================================
+# ============================================================
 
 test_that("cie11_search con API real retorna resultados", {
   skip_on_cran()
@@ -88,7 +88,7 @@ test_that("cie11_search con API real soporta idioma espanol", {
   expect_s3_class(resultado, "tbl_df")
   # Si hay resultados, deberian tener titulos en espanol
   if (nrow(resultado) > 0) {
-    # Al menos algunos titulos deberian tener caracteres espanol o palabras comunes
+    # Titulos deberian ser texto en espanol
     expect_type(resultado$titulo, "character")
   }
 })
@@ -148,9 +148,9 @@ test_that("cie11_search con API real limpia tags HTML", {
 })
 
 
-# ==============================================================================
+# ============================================================
 # PRUEBAS DE ESTRUCTURA DE RESPUESTA DETALLADA
-# ==============================================================================
+# ============================================================
 
 test_that("cie11_search retorna tibble con tipos correctos incluso en error", {
   skip_if_not_installed("httr2")
@@ -187,20 +187,42 @@ test_that("cie11_search maneja texto de busqueda con caracteres especiales", {
   expect_s3_class(resultado2, "tbl_df")
 })
 
-test_that("cie11_search maneja texto vacio", {
+test_that("cie11_search rechaza texto vacio", {
   skip_if_not_installed("httr2")
 
-  # Texto vacio debe dar error o warning, no crash
-  expect_warning(
-    resultado <- cie11_search("", api_key = "test:test"),
-    "Error API"
+  # Texto vacio debe dar error con validacion de input
+  expect_error(
+    cie11_search("", api_key = "test:test"),
+    "vacio"
   )
-  expect_s3_class(resultado, "tbl_df")
 })
 
-# ==============================================================================
+test_that("cie11_search valida tipos de input", {
+  skip_if_not_installed("httr2")
+
+  expect_error(cie11_search(123), "string")
+  expect_error(cie11_search(c("a", "b")), "string")
+  expect_error(cie11_search(NA_character_), "string")
+  expect_error(
+    cie11_search("test", lang = "fr", api_key = "a:b"), "lang"
+  )
+  expect_error(
+    cie11_search("test", max_results = -1, api_key = "a:b"),
+    "entero positivo"
+  )
+  expect_error(
+    cie11_search("test", release = "invalid", api_key = "a:b"),
+    "YYYY-MM"
+  )
+  expect_error(
+    cie11_search("test", release = 2024, api_key = "a:b"),
+    "YYYY-MM"
+  )
+})
+
+# ============================================================
 # PRUEBAS ADICIONALES PARA COBERTURA
-# ==============================================================================
+# ============================================================
 
 test_that("cie11_search con API real busca hipertension", {
   skip_on_cran()
