@@ -2,46 +2,97 @@
 % Please edit documentation in R/cie-api.R
 \name{cie11_search}
 \alias{cie11_search}
-\title{Buscar codigos CIE-11 via API OMS}
+\title{Buscar códigos CIE-11 vía API OMS}
 \usage{
 cie11_search(
-  texto,
-  api_key = NULL,
-  lang = "es",
+  text,
+  api_key = get_icd_api_key(),
+  lang = c("es", "en"),
   max_results = 10,
-  release = "2024-01"
+  release = "2024-01",
+  texto = lifecycle::deprecated()
 )
 }
 \arguments{
-\item{texto}{String termino busqueda espanol/ingles}
+\item{text}{String término búsqueda español/inglés}
 
-\item{api_key}{String opcional, Client ID + Secret OMS separados ":"
-Obtener en: https://icd.who.int/icdapi}
+\item{api_key}{String opcional, Client ID + Secret OMS separados ":".
+Por defecto se lee desde la variable de entorno \code{ICD_API_KEY} vía
+\code{\link[=get_icd_api_key]{get_icd_api_key()}}. Obtener credenciales en: https://icd.who.int/icdapi}
 
 \item{lang}{Character, idioma respuesta ("es" o "en")}
 
-\item{max_results}{Integer, maximo resultados (default 10)}
+\item{max_results}{Integer, máximo resultados (default 10)}
 
-\item{release}{Character, version de release CIE-11 a consultar
+\item{release}{Character, versión de release CIE-11 a consultar
 (default "2024-01"). Ver releases disponibles en la API OMS.}
+
+\item{texto}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{text}.}
 }
 \value{
-tibble con codigos CIE-11 + titulos o vacio si error
+tibble con códigos CIE-11 + títulos o vacío si error
 }
 \description{
-Buscar codigos CIE-11 via API OMS
+Buscar códigos CIE-11 vía API OMS
+}
+\details{
+\subsection{Seguridad de la API key}{
+
+NUNCA escribas la llave literal en tus scripts (p. ej.
+\code{api_key = "tu_id:tu_secret"}): si compartes el código (repositorios,
+correos, capturas) expondrías tus credenciales de forma accidental.
+
+La vía recomendada es guardar la llave en la variable de entorno
+\code{ICD_API_KEY}, por ejemplo editando \verb{~/.Renviron} con
+\code{usethis::edit_r_environ()}; \code{\link[=get_icd_api_key]{get_icd_api_key()}} la lee
+automáticamente.
+
+El argumento \code{api_key} existe solo para circunstancias excepcionales
+(p. ej. manejar múltiples llaves, o entornos donde no es posible fijar
+una variable de entorno).
+}
 }
 \examples{
-# Ver parametros disponibles
+# Ver parámetros disponibles
 args(cie11_search)
 
-\donttest{
-# Requiere credenciales OMS gratuitas (https://icd.who.int/icdapi)
-Sys.setenv(ICD_API_KEY = "client_id:client_secret")
-cie11_search("depresion mayor")
+\dontshow{if (requireNamespace("vcr", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+\dontshow{
+# El cassette grabado (inst/_vcr/) reproduce la respuesta de la API sin
+# conexión ni credenciales reales; la llave ficticia solo satisface el
+# parseo interno del argumento api_key y se restaura al final.
+.key_prev <- Sys.getenv("ICD_API_KEY", unset = NA)
+if (is.na(.key_prev)) Sys.setenv(ICD_API_KEY = "client_id:client_secret")
+vcr::insert_example_cassette("cie11_search", package = "ciecl",
+                             match_requests_on = c("method", "uri"))
 }
+# Requiere credenciales OMS gratuitas (https://icd.who.int/icdapi)
+cie11_search("depresion mayor")
+\dontshow{
+vcr::eject_cassette()
+if (is.na(.key_prev)) Sys.unsetenv("ICD_API_KEY")
+}
+\dontshow{\}) # examplesIf}
+\dontshow{if (requireNamespace("vcr", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+\dontshow{
+.key_prev <- Sys.getenv("ICD_API_KEY", unset = NA)
+if (is.na(.key_prev)) Sys.setenv(ICD_API_KEY = "client_id:client_secret")
+vcr::insert_example_cassette("cie11_search_cronicos", package = "ciecl",
+                             match_requests_on = c("method", "uri"))
+}
+# Causas frecuentes de egreso en Chile
+cie11_search("diabetes mellitus")
+cie11_search("hipertension esencial")
+\dontshow{
+vcr::eject_cassette()
+if (is.na(.key_prev)) Sys.unsetenv("ICD_API_KEY")
+}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link{cie_search}}, \code{\link{cie_lookup}}
+\code{\link[=cie_search]{cie_search()}}, \code{\link[=cie_lookup]{cie_lookup()}}, \code{\link[=cie_guide]{cie_guide()}}
+
+Other api_who:
+\code{\link[=get_icd_api_key]{get_icd_api_key()}}
 }
-\concept{api}
+\concept{api_who}

@@ -13,14 +13,26 @@ Tools for working with the International Classification of Diseases ('ICD-10' Ch
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://rodotasso.github.io/ciecl/}
-  \item \url{https://github.com/RodoTasso/ciecl}
-  \item Report bugs at \url{https://github.com/RodoTasso/ciecl/issues}
+  \item \url{https://docs.ropensci.org/ciecl/}
+  \item \url{https://github.com/ropensci/ciecl}
+  \item Report bugs at \url{https://github.com/ropensci/ciecl/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Rodolfo Tasso Suazo \email{rtasso@uchile.cl} (\href{https://orcid.org/0000-0002-1264-4933}{ORCID})
+\strong{Maintainer}: Rodolfo Tasso Suazo \email{rtasso@uchile.cl} (\href{https://orcid.org/0000-0002-1264-4933}{ORCID}) (Grupo de Ciencia de Datos para Salud Pública, Escuela de Salud Pública, U. de Chile)
+
+Authors:
+\itemize{
+  \item Rodolfo Tasso Suazo \email{rtasso@uchile.cl} (\href{https://orcid.org/0000-0002-1264-4933}{ORCID}) (Grupo de Ciencia de Datos para Salud Pública, Escuela de Salud Pública, U. de Chile)
+}
+
+Other contributors:
+\itemize{
+  \item Francisca Jofre (Package logo design) [contributor]
+  \item Maëlle Salmon (Maëlle reviewed the package (v. 0.9.8) for rOpenSci, see <https://github.com/ropensci/software-review/issues/765>) [reviewer]
+  \item Yanina Bellini (Yanina reviewed the package (v. 0.9.8) for rOpenSci, see <https://github.com/ropensci/software-review/issues/765>) [reviewer]
+}
 
 }
 \keyword{internal}

@@ -2,28 +2,31 @@
 % Please edit documentation in R/cie-utils.R
 \name{cie_expand}
 \alias{cie_expand}
-\title{Expandir codigo jerarquico (ej. E11 -> E11.0-E11.9)}
+\title{Expandir código jerárquico (ej. E11 -> E11.0-E11.9)}
 \usage{
-cie_expand(codigo)
+cie_expand(code, codigo = lifecycle::deprecated())
 }
 \arguments{
-\item{codigo}{String codigo padre (ej. "E11")}
+\item{code}{String código padre (ej. "E11")}
+
+\item{codigo}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{code}.}
 }
 \value{
-Character vector con todos los codigos hijos del codigo padre.
-Vector vacio si el codigo no existe en la base de datos.
+Character vector con todos los códigos hijos del código padre.
+Vector vacío si el código no existe en la base de datos.
 }
 \description{
-Expandir codigo jerarquico (ej. E11 -> E11.0-E11.9)
+Expandir código jerárquico (ej. E11 -> E11.0-E11.9)
 }
 \examples{
 cie_expand("E11")
 }
 \seealso{
-\code{\link{cie_normalizar}}, \code{\link{cie_lookup}}
+\code{\link[=cie_norm]{cie_norm()}}, \code{\link[=cie_lookup]{cie_lookup()}}, \code{\link[=cie_guide]{cie_guide()}}
 
-Other validacion: 
-\code{\link{cie_normalizar}()},
-\code{\link{cie_validate_vector}()}
+Other validacion:
+\code{\link[=cie_norm]{cie_norm()}},
+\code{\link[=cie_normalizar]{cie_normalizar()}},
+\code{\link[=cie_validate_vector]{cie_validate_vector()}}
 }
 \concept{validacion}

@@ -1,0 +1,139 @@
+---
+title: "Language support and internationalization"
+author: "Rodolfo Tasso Suazo"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Language support and internationalization}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Supported languages
+
+The `ciecl` package works primarily in Chilean Spanish, but offers
+multilingual search when the data source allows it. The table summarizes
+the behavior by function.
+
+| Function        | Dataset language   | Search language  | Notes                                   |
+|-----------------|--------------------|------------------|-----------------------------------------|
+| `cie_lookup()`  | Spanish (Chile)    | —                | Search by code; language not applicable |
+| `cie_search()`  | Spanish (Chile)    | Spanish          | Descriptions in Chilean Spanish         |
+| `cie11_search()`| Spanish / English  | Spanish / English| Configurable via the `lang` parameter   |
+| `cie10_sql()`   | Spanish (Chile)    | SQL              | `descripcion` column in Spanish         |
+
+## The Chilean ICD-10 dataset
+
+The `cie10_cl` dataset contains the codes currently in force with
+descriptions in Chilean Spanish according to the official MINSAL/DEIS
+catalog v2018. See `?cie10_cl` for column details.
+
+```{r}
+library(ciecl)
+
+head(cie10_cl[, c("codigo", "descripcion", "capitulo")])
+```
+
+The `descripcion` column preserves the accents and ñ's of the original
+catalog. This matters because many cleaning routines strip accents; in
+`ciecl` normalization happens only at the *search* stage, not in the
+stored data.
+
+### Features of Chilean Spanish
+
+- **Accents preserved in the dataset**: "Neumonía", "Riñón", "Corazón".
+- **Local terminology**: uses medical terms common in Chile.
+- **No anglicisms**: official MINSAL translations.
+
+## Accent- and ñ-tolerant search
+
+`cie_search()` internally normalizes the query so users can type with or
+without accents. This is especially useful in mixed clinical data, where
+the same term appears with and without an accent.
+
+```{r}
+# With or without accent: same result
+cie_search("neumonia")
+cie_search("neumonía")
+cie_search("NEUMONIA")
+```
+
+The same logic applies to the ñ: searching `"rinon"` finds "Riñón" in the
+catalog.
+
+```{r}
+cie_search("rinon")
+```
+
+## Chilean medical abbreviations
+
+The package includes a dictionary of **medical abbreviations** in clinical
+use in Chile. This allows an analyst to type `IAM` instead of the full
+term and `ciecl` resolves the abbreviation to the official catalog term.
+
+```{r}
+# List all available abbreviations
+head(cie_short())
+
+# Filter by category
+cie_short(category = "cardiovascular")
+
+# Use the abbreviation directly in a search
+cie_search("IAM")   # Acute Myocardial Infarction
+cie_search("EPOC")  # Chronic Obstructive Pulmonary Disease
+cie_search("DM2")   # Type 2 Diabetes Mellitus
+```
+
+The following table summarizes the available categories and their
+approximate size. Numbers may vary between package versions.
+
+| Category         | Examples                      |
+|------------------|-------------------------------|
+| Cardiovascular   | IAM, HTA, ACV, FA, ICC        |
+| Respiratory      | TBC, EPOC, NAC, SDRA          |
+| Metabolic        | DM, DM1, DM2, ERC, IRC        |
+| Gastrointestinal | HDA, HDB, RGE, DHC            |
+| Infectious       | VIH, ITU, ITS, sepsis         |
+| Oncological      | CA, LMA, LMC, LLA, LLC        |
+| Neurological     | TEC, EPI, EM, ELA             |
+| Psychiatric      | TDAH, TOC, TAG, TEPT          |
+
+## Multilingual ICD-11 API
+
+`cie11_search()` queries the official WHO API and allows specifying the
+language, since the WHO server provides official translations. `ciecl`
+exposes the parameter `lang = "es"` (default) or `lang = "en"`.
+
+```{r eval=FALSE}
+# Search in Spanish (default)
+# Requires a WHO API Key
+cie11_search("diabetes mellitus", lang = "es")
+```
+
+> Note: this section requires WHO API credentials. See the vignette
+> [Installation and Configuration Guide](installation.html) to learn how
+> to store them securely using `keyring`.
+
+## Encoding and special characters
+
+The package is encoded in **UTF-8** and the dataset preserves all Spanish
+characters (accents, ñ, diaeresis) and the dual-coding symbols (dagger †,
+asterisk \*) that appear in the MINSAL catalog. When searching,
+`cie_search()` and `cie_norm()` know how to clean them.
+
+```{r}
+Encoding(cie10_cl$descripcion[1])
+```
+
+## References
+
+- **ICD-10 Chile**: <https://deis.minsal.cl/centrofic/>
+- **WHO ICD-11**: <https://icd.who.int/>
+- **ICD-11 API**: <https://icd.who.int/icdapi>

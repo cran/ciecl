@@ -11,17 +11,14 @@ test_that("cie10_cl tiene estructura correcta", {
 
   expect_s3_class(cie10_cl, "tbl_df")
 
-  # Columnas esperadas
- columnas_esperadas <- c(
+  # 11 columnas, nombres y orden exactos (man/cie10_cl.Rd)
+  columnas_esperadas <- c(
     "codigo", "descripcion", "categoria", "seccion",
     "capitulo_nombre", "inclusion", "exclusion", "capitulo",
-    "es_daga", "es_cruz"
+    "es_daga", "es_cruz", "uso_cl"
   )
 
-  expect_true(all(columnas_esperadas %in% names(cie10_cl)),
-              info = paste("Columnas faltantes:",
-                           paste(setdiff(columnas_esperadas, names(cie10_cl)),
-                                 collapse = ", ")))
+  expect_equal(names(cie10_cl), columnas_esperadas)
 })
 
 test_that("cie10_cl tiene tipos de columna correctos", {
@@ -99,11 +96,7 @@ test_that("todos los capitulos estan representados", {
   # Capitulos CIE-10: A-Z (algunos no usados)
   capitulos <- unique(substr(cie10_cl$codigo, 1, 1))
 
-  # Capitulos esperados en CIE-10 Chile
-  esperados <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
-                 "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
-                 "U", "V", "W", "X", "Y", "Z")
-
+  # Capitulos esperados en CIE-10 Chile (A-Z; algunos no usados)
   # Al menos los principales deben estar
   principales <- c("A", "B", "C", "D", "E", "F", "G", "I", "J", "K")
   expect_true(all(principales %in% capitulos),
@@ -154,14 +147,19 @@ test_that("codigos infarto miocardio existen", {
 test_that("codigos COVID-19 existen", {
   data(cie10_cl, package = "ciecl", envir = environment())
 
-  # COVID-19 usa codigo U07 (capitulo especial)
+  # COVID-19 usa codigo U07 (capitulo especial). Verificado
+  # empiricamente: el dataset MINSAL/DEIS v2018 incluye 10 codigos U07.
   codigos_covid <- cie10_cl$codigo[grepl("^U07", cie10_cl$codigo)]
 
-  # Puede que no esten en version 2018
-  # Solo verificar si existen que sean validos
-  if (length(codigos_covid) > 0) {
-    expect_true(all(grepl("^U07", codigos_covid)))
-  }
+  expect_equal(length(codigos_covid), 10)
+  expect_true("U07.1" %in% codigos_covid)
+  expect_true("U07.2" %in% codigos_covid)
+
+  # U07.1 = COVID-19 virus identificado (codigo canonico OMS)
+  expect_equal(
+    cie10_cl$descripcion[cie10_cl$codigo == "U07.1"],
+    "COVID-19, virus identificado"
+  )
 })
 
 # ============================================================
@@ -171,10 +169,16 @@ test_that("codigos COVID-19 existen", {
 test_that("columnas es_daga y es_cruz son consistentes", {
   data(cie10_cl, package = "ciecl", envir = environment())
 
-  # No deben ser todos TRUE ni todos FALSE
-  expect_true(any(cie10_cl$es_daga, na.rm = TRUE) || all(!cie10_cl$es_daga, na.rm = TRUE),
-              info = "es_daga debe tener variabilidad o todos FALSE")
+  # Tipos correctos y sin NA
+  expect_type(cie10_cl$es_daga, "logical")
+  expect_type(cie10_cl$es_cruz, "logical")
+  expect_false(anyNA(cie10_cl$es_daga))
+  expect_false(anyNA(cie10_cl$es_cruz))
 
-  expect_true(any(cie10_cl$es_cruz, na.rm = TRUE) || all(!cie10_cl$es_cruz, na.rm = TRUE),
-              info = "es_cruz debe tener variabilidad o todos FALSE")
+  # Estado real del dataset MINSAL/DEIS v2018: no trae pares
+  # daga/asterisco marcados (ambas columnas todas FALSE, verificado
+  # empiricamente). Si una version futura del catalogo los agrega,
+  # este test debe actualizarse, no pasar en verde falso.
+  expect_false(any(cie10_cl$es_daga))
+  expect_false(any(cie10_cl$es_cruz))
 })

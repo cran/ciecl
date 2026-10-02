@@ -12,9 +12,9 @@
 
 <meta name="author" content="Rodolfo Tasso Suazo" />
 
-<meta name="date" content="2026-04-18" />
+<meta name="date" content="2026-10-02" />
 
-<title>Introduction to ciecl: Chilean ICD-10 in R</title>
+<title>Primeros pasos con ciecl: un reporte de egresos hospitalarios</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -339,132 +339,303 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Introduction to ciecl: Chilean ICD-10 in
-R</h1>
+<h1 class="title toc-ignore">Primeros pasos con ciecl: un reporte de
+egresos hospitalarios</h1>
 <h4 class="author">Rodolfo Tasso Suazo</h4>
-<h4 class="date">2026-04-18</h4>
+<h4 class="date">2026-10-02</h4>
 
 
 
-<blockquote>
-<p><strong>Version 0.9.3</strong>: Available on CRAN with SQLite
-optimizations and XLSX support.</p>
-</blockquote>
-<div id="about-the-dataset" class="section level2">
-<h2>About the dataset</h2>
-<p>The package includes <strong>39,877 ICD-10 codes</strong> from the
-official MINSAL/DEIS v2018 catalog, including categories (3 digits) and
-subcategories (4+ digits).</p>
+<div id="para-quién-es-esta-guía" class="section level2">
+<h2>¿Para quién es esta guía?</h2>
+<p>Imagina que trabajas en la unidad de estadística de un hospital y
+cada mes eres la persona encargada de elaborar el <strong>reporte de
+egresos por diabetes</strong> para la dirección del servicio. Recibes la
+base de egresos hospitalarios, y tu objetivo es responder preguntas
+concretas: ¿cuántos egresos tuvieron como diagnóstico principal una
+diabetes?, ¿de qué tipo?, ¿qué tan complejos eran esos pacientes?</p>
+<p>El problema es que la base llega con códigos CIE-10 en formatos
+inconsistentes y sin descripciones: para interpretarlos tendrías que
+consultar a mano el catálogo oficial en PDF o Excel. <code>ciecl</code>
+elimina ese paso: incorpora el catálogo oficial CIE-10 de Chile
+(MINSAL/DEIS v2018) dentro de R y te permite normalizar, describir,
+buscar y analizar los códigos directamente sobre tu base.</p>
+<p>Esta guía recorre ese flujo completo, de lo básico a lo avanzado.
+Solo necesitas conocimientos básicos de R; si además usas
+<code>dplyr</code>, los ejemplos encajan directo en tus pipelines.</p>
 </div>
-<div id="installation" class="section level2">
-<h2>Installation</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># From GitHub (beta version)</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Alternative with devtools</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>)</span></code></pre></div>
+<div id="los-datos-egresos-hospitalarios-del-deis" class="section level2">
+<h2>Los datos: egresos hospitalarios del DEIS</h2>
+<p>Las bases de <strong>Egresos Hospitalarios</strong> las publica el
+Departamento de Estadísticas e Información de Salud (DEIS) del
+Ministerio de Salud de Chile. Cada fila es un alta hospitalaria y la
+columna <code>DIAG1</code> contiene el diagnóstico principal codificado
+en CIE-10.</p>
+<p>En la práctica, estos archivos llegan con dos variaciones de formato
+muy comunes:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Formatos compactos</strong>: códigos sin punto decimal (ej:
+<code>J189</code> en lugar de <code>J18.9</code>).</li>
+<li><strong>Sufijos de relleno</strong>: una letra <code>X</code> para
+completar la longitud del campo en categorías de 3 dígitos (ej:
+<code>I10X</code> para hipertensión esencial).</li>
+</ol>
+<p>Generemos un conjunto de datos sintético que replica la estructura y
+las anomalías típicas de los archivos del DEIS:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># Simulación de 200 registros con formatos típicos del DEIS Chile</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>egresos <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">ID_EGRESO =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">200</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">PACIENTE_ID =</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">50</span>, <span class="dv">200</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  <span class="at">ANO       =</span> <span class="fu">sample</span>(<span class="dv">2018</span><span class="sc">:</span><span class="dv">2022</span>, <span class="dv">200</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  <span class="at">DIAG1     =</span> <span class="fu">sample</span>(</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>    <span class="fu">c</span>(</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>      <span class="st">&quot;J189&quot;</span>, <span class="st">&quot;O800&quot;</span>, <span class="st">&quot;Z380&quot;</span>, <span class="st">&quot;K359&quot;</span>, <span class="st">&quot;N390&quot;</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>      <span class="st">&quot;I10X&quot;</span>, <span class="st">&quot;J449&quot;</span>, <span class="st">&quot;E119&quot;</span>, <span class="st">&quot;O829&quot;</span>, <span class="st">&quot;J069&quot;</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>      <span class="st">&quot;K922&quot;</span>, <span class="st">&quot;N185&quot;</span>, <span class="st">&quot;I509&quot;</span>, <span class="st">&quot;C509&quot;</span>, <span class="st">&quot;A099&quot;</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>      <span class="st">&quot;N40X&quot;</span>, <span class="st">&quot;K800&quot;</span>, <span class="st">&quot;I259&quot;</span>, <span class="st">&quot;J180&quot;</span>, <span class="st">&quot;E149&quot;</span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>    ),</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>    <span class="at">size    =</span> <span class="dv">200</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>    <span class="at">replace =</span> <span class="cn">TRUE</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>  ),</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>  <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>)</span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a><span class="fu">head</span>(egresos)</span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co">#&gt;   ID_EGRESO PACIENTE_ID  ANO DIAG1</span></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="co">#&gt; 1         1          49 2018  J189</span></span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a><span class="co">#&gt; 2         2          37 2022  E119</span></span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a><span class="co">#&gt; 3         3           1 2021  E149</span></span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a><span class="co">#&gt; 4         4          25 2018  N390</span></span>
+<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a><span class="co">#&gt; 5         5          10 2022  I10X</span></span>
+<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a><span class="co">#&gt; 6         6          36 2021  C509</span></span></code></pre></div>
 </div>
-<div id="fast-sql-search" class="section level2">
-<h2>Fast SQL search</h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># All type 2 diabetes codes</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">cie10_sql</span>(<span class="st">&quot;SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE &#39;E11%&#39; LIMIT 5&quot;</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 2</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                                           </span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;                                                 </span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt; 1 E11    Diabetes mellitus no insulinodependiente              </span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt; 2 E11.0  Diabetes mellitus tipo 2 con coma                     </span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt; 3 E11.1  Diabetes mellitus tipo 2 con cetoacidosis             </span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; 4 E11.2  Diabetes mellitus tipo 2 con complicaciones renales   </span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 5 E11.3  Diabetes mellitus tipo 2 con complicaciones oftálmicas</span></span></code></pre></div>
+<div id="paso-1-normalizar-los-códigos-con-cie_norm" class="section level2">
+<h2>Paso 1: Normalizar los códigos con <code>cie_norm()</code></h2>
+<p>Antes de cualquier análisis hay que estandarizar <code>DIAG1</code>.
+<code>cie_norm()</code> aplica las reglas de codificación oficial del
+MINSAL de forma vectorizada: elimina la <code>X</code> de relleno,
+inserta el punto decimal en la posición correcta y limpia espacios,
+guiones y símbolos especiales (como † o *).</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Limpieza y estandarización de diagnósticos en el flujo de trabajo</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>egresos <span class="ot">&lt;-</span> egresos <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>    <span class="at">DIAG1_NORM =</span> <span class="fu">cie_norm</span>(<span class="at">codes =</span> DIAG1)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  )</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co"># Comparación entre formato original y normalizado</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>egresos <span class="sc">|&gt;</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="fu">select</span>(DIAG1, DIAG1_NORM) <span class="sc">|&gt;</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">|&gt;</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">5</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt;   DIAG1 DIAG1_NORM</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt; 1  J189      J18.9</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; 2  E119      E11.9</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt; 3  E149      E14.9</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt; 4  N390      N39.0</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co">#&gt; 5  I10X        I10</span></span></code></pre></div>
+<p>Con esto, <code>I10X</code> quedó como <code>I10</code> y
+<code>J189</code> como <code>J18.9</code>: los códigos ya son
+comparables con el catálogo oficial.</p>
 </div>
-<div id="search-by-code" class="section level2">
-<h2>Search by code</h2>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Single code search</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11.0&quot;</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 10</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion       categoria seccion capitulo_nombre inclusion exclusion</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 1 E11.0  Diabetes mellitu… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;</span></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co"># Vectorized search - multiple codes at once</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>codes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I10&quot;</span>, <span class="st">&quot;Z00&quot;</span>, <span class="st">&quot;J44.0&quot;</span>)</span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">cie_lookup</span>(codes)</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 10</span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion       categoria seccion capitulo_nombre inclusion exclusion</span></span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; 1 E11.0  Diabetes mellitu… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; 2 I10    Hipertensión ese… I10 HIPE… I10-I1… Cap.09  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; 3 J44.0  Enfermedad pulmo… J44 OTRA… J40-J4… Cap.10  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; 4 Z00    Examen general e… Z00 EXAM… Z00-Z1… Cap.21  FACTOR… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;</span></span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co"># Hierarchical expansion</span></span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11&quot;</span>, <span class="at">expandir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 10</span></span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion      categoria seccion capitulo_nombre inclusion exclusion</span></span>
-<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
-<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt;  1 E11    Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt;  2 E11.0  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co">#&gt;  3 E11.1  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co">#&gt;  4 E11.2  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co">#&gt;  5 E11.3  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="co">#&gt;  6 E11.4  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="co">#&gt;  7 E11.5  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="co">#&gt;  8 E11.6  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="co">#&gt;  9 E11.7  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="co">#&gt; 10 E11.8  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="co">#&gt; 11 E11.9  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;</span></span></code></pre></div>
+<div id="paso-2-agregar-las-descripciones-oficiales-con-cie_describe" class="section level2">
+<h2>Paso 2: Agregar las descripciones oficiales con
+<code>cie_describe()</code></h2>
+<p>Para el reporte necesitas las glosas clínicas, no solo los códigos.
+<code>cie_describe()</code> devuelve un vector de texto con una
+descripción por cada código, así que puedes agregarlo como una columna
+más de tu tabla con <code>mutate()</code>, sin pasos intermedios:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Integración directa de descripciones al dataframe principal</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>egresos_full <span class="ot">&lt;-</span> egresos <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="at">descripcion =</span> <span class="fu">cie_describe</span>(DIAG1_NORM)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  )</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="fu">head</span>(egresos_full <span class="sc">|&gt;</span> <span class="fu">select</span>(ID_EGRESO, DIAG1, descripcion))</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt;   ID_EGRESO DIAG1</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; 1         1  J189</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; 2         2  E119</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; 3         3  E149</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; 4         4  N390</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; 5         5  I10X</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; 6         6  C509</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt;                                                       descripcion</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; 1                                       Neumonía, no especificada</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; 2                     Diabetes mellitus tipo 2 sin complicaciones</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; 3 Diabetes mellitus, no especificada, sin mención de complicación</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; 4              Infección de vías urinarias, sitio no especificado</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; 5                                Hipertensión esencial (primaria)</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; 6                 Tumor maligno de la mama, parte no especificada</span></span></code></pre></div>
+<p>Si además de la glosa necesitas la metadata completa (capítulo,
+grupo, notas de inclusión/exclusión), usa <code>cie_lookup()</code>, que
+devuelve un <code>tibble</code> estructurado listo para un
+<code>left_join()</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Obtención de metadata completa vía lookup + join</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>metadata <span class="ot">&lt;-</span> <span class="fu">cie_lookup</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">code =</span> <span class="fu">unique</span>(egresos<span class="sc">$</span>DIAG1_NORM),</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">full_description =</span> <span class="cn">TRUE</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>)</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; ✖ Códigos no encontrados: &quot;K35.9&quot;</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>egresos_metadata <span class="ot">&lt;-</span> egresos <span class="sc">|&gt;</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="fu">left_join</span>(metadata, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;DIAG1_NORM&quot;</span> <span class="ot">=</span> <span class="st">&quot;codigo&quot;</span>))</span></code></pre></div>
 </div>
-<div id="fuzzy-search-with-typos" class="section level2">
-<h2>Fuzzy search with typos</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Finds even if misspelled</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;diabetis with coma&quot;</span>, <span class="at">threshold =</span> <span class="fl">0.75</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 22 × 4</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt;  1 B15.0  Hepatitis aguda tipo A, con coma hepático              0.333 B15 HEPA…</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt;  2 B15.9  Hepatitis aguda tipo A, sin coma hepático              0.333 B15 HEPA…</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt;  3 B16.0  Hepatitis aguda tipo B, con agente delta (coinfección… 0.333 B16 HEPA…</span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt;  4 B16.1  Hepatitis aguda tipo B, con agente delta (coinfección… 0.333 B16 HEPA…</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt;  5 B16.2  Hepatitis aguda tipo B, sin agente delta, con coma he… 0.333 B16 HEPA…</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt;  6 B16.9  Hepatitis aguda tipo B, sin agente delta y sin coma h… 0.333 B16 HEPA…</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;  7 B19.0  Hepatitis viral no especificada, con coma hepático     0.333 B19 HEPA…</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;  8 B19.9  Hepatitis viral no especificada, sin  coma hepático    0.333 B19 HEPA…</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;  9 E03.5  Coma mixedematoso                                      0.333 E03 OTRO…</span></span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 10 E10.0  Diabetes mellitus tipo 1 con coma                      0.333 E10 DIAB…</span></span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; # ℹ 12 more rows</span></span></code></pre></div>
+<div id="paso-3-encontrar-códigos-cuando-no-sabes-el-código-con-cie_search" class="section level2">
+<h2>Paso 3: Encontrar códigos cuando no sabes el código con
+<code>cie_search()</code></h2>
+<p>Volvamos a tu reporte de diabetes: sospechas que en la base hay
+egresos por diabetes, pero ¿qué códigos exactos cubre el catálogo? En
+vez de hojear el PDF, buscas por texto. <code>cie_search()</code> usa
+similitud Jaro-Winkler, así que tolera errores tipográficos (aquí
+buscamos “diabetis” a propósito):</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Búsqueda tolerante: &quot;diabetis&quot; en lugar de &quot;diabetes&quot;</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co"># (por defecto se muestran los 50 resultados más parecidos;</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#  ampliamos el límite porque el catálogo tiene muchos códigos de diabetes)</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>resultados_busqueda <span class="ot">&lt;-</span> <span class="fu">cie_search</span>(<span class="at">text =</span> <span class="st">&quot;diabetis&quot;</span>, <span class="at">threshold =</span> <span class="fl">0.7</span>, <span class="at">max_results =</span> <span class="dv">100</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>resultados_busqueda</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 100 × 4</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt;  1 E10    Diabetes mellitus insulinodependiente                  0.917 E10 DIAB…</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt;  2 E10.0  Diabetes mellitus tipo 1 con coma                      0.917 E10 DIAB…</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;  3 E10.1  Diabetes mellitus tipo 1 con cetoacidosis              0.917 E10 DIAB…</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt;  4 E10.2  Diabetes mellitus tipo 1 con complicaciones renales    0.917 E10 DIAB…</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt;  5 E10.3  Diabetes mellitus tipo 1 con complicaciones oftálmicas 0.917 E10 DIAB…</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt;  6 E10.4  Diabetes mellitus tipo 1 con complicaciones neurológi… 0.917 E10 DIAB…</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt;  7 E10.5  Diabetes mellitus tipo 1 con complicaciones  circulat… 0.917 E10 DIAB…</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt;  8 E10.6  Diabetes mellitus tipo 1 con otras complicaciones esp… 0.917 E10 DIAB…</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt;  9 E10.7  Diabetes mellitus tipo 1 con complicaciones múltiples  0.917 E10 DIAB…</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; 10 E10.8  Diabetes mellitus tipo 1 con complicaciones no especi… 0.917 E10 DIAB…</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; # ℹ 90 more rows</span></span></code></pre></div>
+<p>Cada resultado incluye un <code>score</code> de similitud para
+evaluar la confiabilidad de la coincidencia. Pero la tabla anterior
+lista todos los códigos de diabetes del catálogo, y no todos
+necesariamente están en tu base. Para saber cuáles sí, basta con cruzar
+los resultados de la búsqueda con los códigos que realmente aparecen en
+tus datos:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># ¿Qué códigos de diabetes están realmente en mi base?</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>codigos_diabetes <span class="ot">&lt;-</span> <span class="fu">intersect</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  resultados_busqueda<span class="sc">$</span>codigo,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="fu">unique</span>(egresos<span class="sc">$</span>DIAG1_NORM)</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>codigos_diabetes</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; [1] &quot;E11.9&quot; &quot;E14.9&quot;</span></span></code></pre></div>
+<p>Como se ve en el resultado, de todos los códigos de diabetes del
+catálogo solo dos están presentes en la columna <code>DIAG1</code> de tu
+base: <code>E11.9</code> y <code>E14.9</code>. El cruce identifica qué
+códigos contienen realmente tus datos, sin tener que revisar la tabla
+completa a mano. Con esa lista ya puedes filtrar los egresos y cerrar el
+reporte:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Reporte final: egresos por diabetes, resumidos por tipo</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>egresos_full <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="fu">filter</span>(DIAG1_NORM <span class="sc">%in%</span> codigos_diabetes) <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="fu">count</span>(descripcion, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt;                                                       descripcion  n</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; 1                     Diabetes mellitus tipo 2 sin complicaciones 14</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; 2 Diabetes mellitus, no especificada, sin mención de complicación 12</span></span></code></pre></div>
+<p>Con esto tu reporte mensual de egresos por diabetes queda listo:
+sabes cuántos hubo y de qué tipo, con las glosas oficiales del
+catálogo.</p>
 </div>
-<div id="charlson-comorbidities" class="section level2">
-<h2>Charlson Comorbidities</h2>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Requires: install.packages(&quot;comorbidity&quot;)</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>patient_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">patient_id =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>),</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">diagnosis =</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I50.9&quot;</span>, <span class="st">&quot;C50.9&quot;</span>, <span class="st">&quot;N18.5&quot;</span>, <span class="st">&quot;J44.0&quot;</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>)</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="fu">cie_comorbid</span>(patient_df, <span class="at">id =</span> <span class="st">&quot;patient_id&quot;</span>, <span class="at">code =</span> <span class="st">&quot;diagnosis&quot;</span>, <span class="at">map =</span> <span class="st">&quot;charlson&quot;</span>)</span></code></pre></div>
+<div id="cuando-la-búsqueda-no-entrega-resultados" class="section level2">
+<h2>Cuando la búsqueda no entrega resultados</h2>
+<p>Es normal que algunas consultas no encuentren nada, y conviene saber
+cómo se comporta el paquete en esos casos: <strong>las funciones nunca
+fallan con un error por ausencia de resultados; devuelven un
+<code>tibble</code> vacío con la estructura de columnas
+correcta</strong> y un mensaje informativo.</p>
+<p>Si buscas un código que no existe en el catálogo:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;XYZ123&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; ✖ Código no encontrado: &quot;XYZ123&quot;</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 0 × 11</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; # ℹ 11 variables: codigo &lt;chr&gt;, descripcion &lt;chr&gt;, categoria &lt;chr&gt;,</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; #   seccion &lt;chr&gt;, capitulo_nombre &lt;chr&gt;, inclusion &lt;chr&gt;, exclusion &lt;chr&gt;,</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; #   capitulo &lt;chr&gt;, es_daga &lt;lgl&gt;, es_cruz &lt;lgl&gt;, uso_cl &lt;chr&gt;</span></span></code></pre></div>
+<p>Si el umbral de <code>cie_search()</code> es demasiado estricto para
+el término ingresado:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;zzzqwerty&quot;</span>, <span class="at">threshold =</span> <span class="fl">0.95</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; ✖ Sin coincidencias &gt;= threshold 0.95</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 0 × 4</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; # ℹ 4 variables: codigo &lt;chr&gt;, descripcion &lt;chr&gt;, score &lt;dbl&gt;, categoria &lt;chr&gt;</span></span></code></pre></div>
+<p>En ambos casos el flujo no se interrumpe: puedes verificar
+<code>nrow(resultado) == 0</code> y reaccionar (bajar el
+<code>threshold</code>, revisar la ortografía o validar el código). Para
+chequear rápidamente qué códigos de un vector son válidos según el
+catálogo, usa <code>cie_validate_vector()</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">cie_validate_vector</span>(<span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;XYZ123&quot;</span>, <span class="st">&quot;I10X&quot;</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co">#&gt; [1]  TRUE FALSE  TRUE</span></span></code></pre></div>
 </div>
-<div id="interactive-tables" class="section level2">
-<h2>Interactive tables</h2>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Requires: install.packages(&quot;gt&quot;)</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">cie_table</span>(<span class="st">&quot;E11&quot;</span>)  <span class="co"># Full GT visualization</span></span></code></pre></div>
+<div id="paso-4-estratificar-riesgo-con-cie_comorbid" class="section level2">
+<h2>Paso 4: Estratificar riesgo con <code>cie_comorbid()</code></h2>
+<p>El último nivel del reporte es la complejidad de los pacientes.
+<code>cie_comorbid()</code> mapea los diagnósticos a los índices de
+Charlson o Elixhauser y devuelve una matriz de comorbilidades por
+paciente, lista para modelos estadísticos:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Requiere el paquete &#39;comorbidity&#39; instalado</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co"># Cálculo del Índice de Charlson consolidado por paciente</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>comorbilidades <span class="ot">&lt;-</span> <span class="fu">cie_comorbid</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">data =</span> egresos,</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">id =</span> <span class="st">&quot;PACIENTE_ID&quot;</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="at">code =</span> <span class="st">&quot;DIAG1&quot;</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  <span class="at">map =</span> <span class="st">&quot;charlson&quot;</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>)</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="fu">head</span>(comorbilidades, <span class="dv">10</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt; # A tibble: 10 × 19</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;    PACIENTE_ID    mi   chf   pvd  cevd dementia   cpd rheumd   pud   mld  diab</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;          &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt; &lt;int&gt;  &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;  1           1     0     0     0     0        0     0      0     0     0     1</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;  2           2     0     0     0     0        0     0      0     0     0     0</span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt;  3           3     0     0     0     0        0     0      0     0     0     1</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt;  4           4     0     1     0     0        0     1      0     0     0     0</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;  5           5     0     1     0     0        0     0      0     0     0     1</span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;  6           6     0     0     0     0        0     1      0     0     0     1</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;  7           7     0     0     0     0        0     0      0     0     0     0</span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;  8           8     0     0     0     0        0     0      0     0     0     1</span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt;  9           9     0     0     0     0        0     1      0     0     0     0</span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt; 10          10     0     0     0     0        0     0      0     0     0     1</span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt; # ℹ 8 more variables: diabwc &lt;int&gt;, hp &lt;int&gt;, rend &lt;int&gt;, canc &lt;int&gt;,</span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt; #   msld &lt;int&gt;, metacanc &lt;int&gt;, aids &lt;int&gt;, score_charlson &lt;dbl&gt;</span></span></code></pre></div>
 </div>
-<div id="data-source" class="section level2">
-<h2>Data source</h2>
-<p>Official ICD-10 Chile data MINSAL/DEIS v2018:</p>
+<div id="resumen-del-flujo" class="section level2">
+<h2>Resumen del flujo</h2>
+<p>El recorrido de esta guía cubre el ciclo completo desde la base cruda
+hasta el insumo analítico:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Estandarización</strong>: corrección de formatos con
+<code>cie_norm()</code>.</li>
+<li><strong>Contextualización</strong>: glosas oficiales con
+<code>cie_describe()</code> y metadata con
+<code>cie_lookup()</code>.</li>
+<li><strong>Exploración</strong>: búsqueda de códigos por texto con
+<code>cie_search()</code>, tolerante a errores y con comportamiento
+predecible cuando no hay resultados.</li>
+<li><strong>Agregación</strong>: índices de comorbilidad con
+<code>cie_comorbid()</code>.</li>
+</ol>
+<p>¿No sabes cuál función usar en otro escenario? Ejecuta
+<code>cie_guide()</code> para ver una tabla comparativa con la función
+recomendada y un ejemplo por caso.</p>
+</div>
+<div id="para-seguir-aprendiendo" class="section level2">
+<h2>Para seguir aprendiendo</h2>
 <ul>
-<li>FIC Chile Center: <a href="https://deis.minsal.cl/centrofic/" class="uri">https://deis.minsal.cl/centrofic/</a></li>
-<li>DEIS Repository: <a href="https://deis.minsal.cl" class="uri">https://deis.minsal.cl</a></li>
+<li><a href="instalacion.html">Guía de instalación y configuración</a>:
+instalación y credenciales para la API CIE-11 de la OMS.</li>
+<li><a href="ciecl-es.html">Introducción a ciecl: CIE-10 Chile en R</a>:
+recorrido por función, incluyendo consultas SQL directas con
+<code>cie10_sql()</code> y tablas formateadas con
+<code>cie_table()</code>.</li>
+<li><a href="idiomas.html">Idiomas y normalización</a>: búsqueda en
+español e inglés y manejo de tildes.</li>
 </ul>
-</div>
-<div id="more-information" class="section level2">
-<h2>More information</h2>
-<ul>
-<li>Report issues: <a href="https://github.com/RodoTasso/ciecl/issues" class="uri">https://github.com/RodoTasso/ciecl/issues</a></li>
-<li>Repository: <a href="https://github.com/RodoTasso/ciecl" class="uri">https://github.com/RodoTasso/ciecl</a></li>
-</ul>
+<hr />
+<p><strong>Fuente de datos:</strong> Esta herramienta utiliza el
+catálogo CIE-10 oficial para Chile, gestionado por el DEIS del
+Ministerio de Salud. Más detalles en <a href="https://deis.minsal.cl">deis.minsal.cl</a>.</p>
 </div>
 
 

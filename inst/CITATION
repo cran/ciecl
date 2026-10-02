@@ -1,10 +1,15 @@
 bibentry(
   bibtype = "Manual",
   title = "ciecl: Clasificacion Internacional de Enfermedades CIE-10/11 para Chile",
-  author = person("Rodolfo", "Tasso Suazo",
-                  email = "rtasso@uchile.cl",
-                  comment = c(ORCID = "0000-0002-1264-4933")),
+  author = c(person("Rodolfo", "Tasso Suazo",
+                    email = "rtasso@uchile.cl",
+                    role = c("aut", "cre"),
+                    comment = c(ORCID = "0000-0002-1264-4933")),
+             person("Francisca", "Jofre",
+                    role = "ctb",
+                    comment = "Package logo design")),
   year = 2026,
-  note = "R package version 0.9.3. Grupo de Ciencia de Datos para Salud Publica, Escuela de Salud Publica, U. de Chile. Datos: MINSAL/DEIS v2018",
-  url = "https://github.com/Rodotasso/ciecl"
+  note = "R package version 1.0.0. Grupo de Ciencia de Datos para Salud Publica, Escuela de Salud Publica, U. de Chile. Datos: MINSAL/DEIS v2018",
+  url = "https://github.com/ropensci/ciecl",
+  doi = "10.5281/zenodo.22906553"  # DOI concepto Zenodo (apunta siempre a la ultima version)
 )

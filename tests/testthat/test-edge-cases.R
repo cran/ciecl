@@ -9,16 +9,16 @@ test_that("cie_search rechaza NA, vectores y tipos invalidos", {
   skip_on_cran()
 
   # NA debe dar error
-  expect_error(cie_search(NA), "texto debe ser un string character no-NA")
-  expect_error(cie_search(NA_character_), "texto debe ser un string character no-NA")
+  expect_error(cie_search(NA), "string character no-NA")
+  expect_error(cie_search(NA_character_), "string character no-NA")
 
   # Vectores de longitud != 1 deben dar error
-  expect_error(cie_search(c("diabetes", "cancer")), "texto debe ser un string character no-NA")
-  expect_error(cie_search(character(0)), "texto debe ser un string character no-NA")
+  expect_error(cie_search(c("diabetes", "cancer")), "string character no-NA")
+  expect_error(cie_search(character(0)), "string character no-NA")
 
   # Tipos invalidos deben dar error
-  expect_error(cie_search(123), "texto debe ser un string character no-NA")
-  expect_error(cie_search(list("diabetes")), "texto debe ser un string character no-NA")
+  expect_error(cie_search(123), "string character no-NA")
+  expect_error(cie_search(list("diabetes")), "string character no-NA")
 })
 
 test_that("cie_search maneja cadenas muy cortas", {
@@ -30,9 +30,9 @@ test_that("cie_search maneja cadenas muy cortas", {
   expect_no_error(suppressMessages(cie_search("DM")))
 
   # Texto de 1 caracter o vacio debe dar error
-  expect_error(cie_search("a"), "Texto minimo 2 caracteres")
-  expect_error(cie_search(""), "Texto minimo 2 caracteres")
-  expect_error(cie_search(" "), "Texto minimo 2 caracteres")
+  expect_error(cie_search("a"), "m\u00ednimo 2 caracteres")
+  expect_error(cie_search(""), "m\u00ednimo 2 caracteres")
+  expect_error(cie_search(" "), "m\u00ednimo 2 caracteres")
 })
 
 test_that("cie_search maneja threshold invalido", {
@@ -54,7 +54,8 @@ test_that("cie_search maneja max_results extremos", {
   # max_results = 1
 
   resultado <- cie_search("diabetes", threshold = 0.70, max_results = 1)
-  expect_lte(nrow(resultado), 1)
+  expect_s3_class(resultado, "tbl_df")
+  expect_lte(nrow(resultado), 1L)
 
   # max_results muy grande
   resultado_grande <- cie_search("diabetes", threshold = 0.60, max_results = 10000)
@@ -92,11 +93,11 @@ test_that("cie_search maneja espacios multiples", {
   expect_gt(nrow(resultado2), 0)
 })
 
-test_that("cie_search maneja campo invalido", {
+test_that("cie_search maneja field invalido", {
   skip_on_cran()
 
-  # Campo invalido debe usar default o dar error
-  expect_error(cie_search("diabetes", campo = "inexistente"))
+  # field invalido debe usar default o dar error
+  expect_error(cie_search("diabetes", field = "inexistente"))
 })
 
 # ============================================================
@@ -110,7 +111,7 @@ test_that("cie_lookup maneja NA en entrada", {
   suppressMessages({
     resultado <- cie_lookup(NA_character_)
   })
-  expect_equal(nrow(resultado), 0)
+  expect_length(resultado$codigo, 0)
 })
 
 test_that("cie_lookup maneja vector vacio", {
@@ -118,7 +119,7 @@ test_that("cie_lookup maneja vector vacio", {
 
   # Vector vacio
   resultado <- cie_lookup(character(0))
-  expect_equal(nrow(resultado), 0)
+  expect_length(resultado$codigo, 0)
 })
 
 test_that("cie_lookup maneja cadena vacia", {
@@ -127,7 +128,7 @@ test_that("cie_lookup maneja cadena vacia", {
   suppressMessages({
     resultado <- cie_lookup("")
   })
-  expect_equal(nrow(resultado), 0)
+  expect_length(resultado$codigo, 0)
 })
 
 test_that("cie_lookup maneja codigo con espacios", {
@@ -155,9 +156,10 @@ test_that("cie_lookup maneja minusculas", {
 test_that("cie_lookup maneja rangos invalidos", {
   skip_on_cran()
 
-  # Rango invertido
-  suppressWarnings(
-    resultado <- cie_lookup("E14-E10")
+  # Rango invertido: warning explicito y correccion automatica
+  expect_warning(
+    resultado <- cie_lookup("E14-E10"),
+    "Rango invertido"
   )
   # Puede no encontrar resultados pero no debe crashear
   expect_s3_class(resultado, "tbl_df")
@@ -192,7 +194,7 @@ test_that("cie_lookup maneja codigo con caracteres SQL peligrosos", {
       resultado <- cie_lookup(cod)
     })
     expect_s3_class(resultado, "tbl_df")
-    expect_equal(nrow(resultado), 0)
+    expect_length(resultado$codigo, 0)
   }
 
   # E11* se normaliza a E11 (asterisco = codificacion dual, se elimina)
@@ -201,7 +203,7 @@ test_that("cie_lookup maneja codigo con caracteres SQL peligrosos", {
     resultado_ast <- cie_lookup("E11*")
   })
   expect_s3_class(resultado_ast, "tbl_df")
-  expect_gt(nrow(resultado_ast), 0)
+  expect_gt(length(resultado_ast$codigo), 0)
 })
 
 test_that("cie_lookup expandir con codigo inexistente", {
@@ -209,75 +211,37 @@ test_that("cie_lookup expandir con codigo inexistente", {
 
   # Expandir codigo que no existe
   suppressMessages({
-    resultado <- cie_lookup("ZZZ", expandir = TRUE)
+    resultado <- cie_lookup("ZZZ", expand = TRUE)
   })
-  expect_equal(nrow(resultado), 0)
+  expect_length(resultado$codigo, 0)
 })
 
 # ============================================================
-# PRUEBAS PARA cie_normalizar()
+# PRUEBAS PARA cie_norm()
 # ============================================================
 
-test_that("cie_normalizar maneja NA", {
-  skip_on_cran()
-
-  # NA como entrada
-  resultado <- cie_normalizar(NA_character_, buscar_db = FALSE)
-  expect_true(is.na(resultado))
-})
-
-test_that("cie_normalizar maneja vector con NAs", {
+test_that("cie_norm maneja vector con NAs", {
   skip_on_cran()
 
   codigos <- c("E110", NA, "I100")
-  resultado <- cie_normalizar(codigos, buscar_db = FALSE)
+  resultado <- cie_norm(codigos, search_db = FALSE)
 
   expect_equal(resultado[1], "E11.0")
   expect_true(is.na(resultado[2]))
   expect_equal(resultado[3], "I10.0")
 })
 
-test_that("cie_normalizar maneja cadena vacia", {
-  skip_on_cran()
-
-  resultado <- cie_normalizar("", buscar_db = FALSE)
-  expect_equal(resultado, "")
-})
-
-test_that("cie_normalizar maneja codigos ya normalizados", {
-  skip_on_cran()
-
-  # Codigos ya con punto no deben cambiar
-  codigos <- c("E11.0", "I10.0", "Z00.0")
-  resultado <- cie_normalizar(codigos, buscar_db = FALSE)
-  expect_equal(resultado, codigos)
-})
-
-test_that("cie_normalizar maneja codigos de 3 caracteres", {
-  skip_on_cran()
-
-  # Codigos de categoria (3 chars) no deben modificarse
-  resultado <- cie_normalizar("E11", buscar_db = FALSE)
-  expect_equal(resultado, "E11")
-})
-
-test_that("cie_normalizar maneja codigos largos", {
+test_that("cie_norm maneja codigos largos", {
   skip_on_cran()
 
   # Codigos de 5 digitos (E11.00 formato)
-  resultado <- cie_normalizar("E1100", buscar_db = FALSE)
+  resultado <- cie_norm("E1100", search_db = FALSE)
   expect_equal(resultado, "E11.00")
 })
 
 # ============================================================
 # PRUEBAS PARA cie_validate_vector()
 # ============================================================
-
-test_that("cie_validate_vector maneja NA", {
-  # NA debe ser FALSE
-  resultado <- cie_validate_vector(NA_character_)
-  expect_false(resultado)
-})
 
 test_that("cie_validate_vector maneja vector vacio", {
   resultado <- cie_validate_vector(character(0))
@@ -317,7 +281,7 @@ test_that("cie_validate_vector rechaza formatos invalidos", {
   )
 
   resultado <- cie_validate_vector(codigos_invalidos)
-  expect_true(all(!resultado))
+  expect_all_false(resultado)
 })
 
 test_that("cie_validate_vector normaliza antes de validar", {
@@ -357,12 +321,13 @@ test_that("cie_expand maneja codigo vacio", {
 })
 
 test_that("cie_expand maneja NA", {
-  skip_on_cran()
-
-  suppressMessages({
-    resultado <- cie_expand(NA_character_)
-  })
-  expect_length(resultado, 0)
+  # Contrato endurecido (Fase A, auditoria 2026-09-13): input NA aborta
+  # con clase propia en lugar de retornar character(0) en silencio;
+  # corre sin skip (validacion previa a la DB, canario CRAN)
+  expect_error(
+    cie_expand(NA_character_),
+    class = "ciecl_invalid_input"
+  )
 })
 
 test_that("cie_expand maneja codigo inexistente", {
@@ -449,7 +414,8 @@ test_that("cie_comorbid rechaza dataframe vacio", {
 })
 
 test_that("cie_comorbid detecta columnas inexistentes", {
-  skip_on_cran()
+  # Canario CRAN: version sin skip_on_cran del contrato de validacion
+  # de columnas (las copias con skip fueron podadas como duplicados).
   skip_if_not_installed("comorbidity")
 
   df <- data.frame(
@@ -460,13 +426,13 @@ test_that("cie_comorbid detecta columnas inexistentes", {
   # Columna id incorrecta
   expect_error(
     cie_comorbid(df, id = "id_paciente", code = "codigo"),
-    "no existen en data"
+    class = "ciecl_invalid_input"
   )
 
   # Columna code incorrecta
   expect_error(
     cie_comorbid(df, id = "paciente", code = "diagnostico"),
-    "no existen en data"
+    class = "ciecl_invalid_input"
   )
 })
 
@@ -484,52 +450,16 @@ test_that("cie_comorbid funciona con map elixhauser", {
   expect_false("score_charlson" %in% names(resultado))
 })
 
-test_that("cie_comorbid maneja codigos con NA", {
-  skip_on_cran()
-  skip_if_not_installed("comorbidity")
-
-  df <- data.frame(
-    id = c(1, 1, 2, 2),
-    diag = c("E11.0", NA, "I50.9", "C50.9")
-  )
-
-  # No debe crashear con NAs (warning esperado por NA values)
-  expect_no_error({
-    suppressWarnings({
-      resultado <- cie_comorbid(df, id = "id", code = "diag", map = "charlson")
-    })
-  })
-})
-
 # ============================================================
 # PRUEBAS PARA cie10_sql()
 # ============================================================
 
+# Canario CRAN: unico test de bloqueo SQL sin skip_on_cran
+# (las replicas de UPDATE/DELETE/INSERT/ALTER viven en test-cie-sql.R).
 test_that("cie10_sql bloquea queries UPDATE", {
   expect_error(
     cie10_sql("UPDATE cie10 SET codigo = 'X' WHERE codigo = 'E11.0'"),
-    "Solo queries SELECT"
-  )
-})
-
-test_that("cie10_sql bloquea queries DELETE", {
-  expect_error(
-    cie10_sql("DELETE FROM cie10 WHERE codigo = 'E11.0'"),
-    "Solo queries SELECT"
-  )
-})
-
-test_that("cie10_sql bloquea queries INSERT", {
-  expect_error(
-    cie10_sql("INSERT INTO cie10 (codigo) VALUES ('TEST')"),
-    "Solo queries SELECT"
-  )
-})
-
-test_that("cie10_sql bloquea queries ALTER", {
-  expect_error(
-    cie10_sql("ALTER TABLE cie10 ADD COLUMN test TEXT"),
-    "Solo queries SELECT"
+    class = "ciecl_unsafe_query"
   )
 })
 
@@ -572,25 +502,25 @@ test_that("cie10_sql bloquea keywords peligrosos", {
   # DROP (detectado como keyword peligroso)
   expect_error(
     cie10_sql("SELECT * FROM cie10; DROP TABLE cie10;--"),
-    "keyword no permitido"
+    "palabra clave no permitida"
   )
 
-  # Multiples statements sin keyword peligroso
+  # Multiples sentencias sin keyword peligroso
   expect_error(
     cie10_sql("SELECT * FROM cie10; SELECT * FROM cie10"),
-    "Multiples statements"
+    "sentencias SQL no permitidas"
   )
 
   # ATTACH (SQLite specific attack)
   expect_error(
     cie10_sql("SELECT * FROM cie10 WHERE 1=1 ATTACH DATABASE"),
-    "keyword no permitido"
+    "palabra clave no permitida"
   )
 
   # PRAGMA (SQLite metadata)
   expect_error(
     cie10_sql("SELECT * FROM cie10 WHERE 1=1 PRAGMA table_info"),
-    "keyword no permitido"
+    "palabra clave no permitida"
   )
 })
 

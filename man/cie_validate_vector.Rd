@@ -2,30 +2,33 @@
 % Please edit documentation in R/cie-utils.R
 \name{cie_validate_vector}
 \alias{cie_validate_vector}
-\title{Validar vector de codigos CIE-10 formato}
+\title{Validar vector de códigos CIE-10 formato}
 \usage{
-cie_validate_vector(codigos, strict = FALSE)
+cie_validate_vector(codes, strict = FALSE, codigos = lifecycle::deprecated())
 }
 \arguments{
-\item{codigos}{Character vector codigos (ej. c("E11.0", "Z00.0"))}
+\item{codes}{Character vector códigos (ej. c("E11.0", "Z00.0"))}
 
 \item{strict}{Logical, validar existencia en DB (default FALSE)}
+
+\item{codigos}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{codes}.}
 }
 \value{
-Logical vector de la misma longitud que \code{codigos}. TRUE si el
-codigo tiene formato CIE-10 valido (y existe en DB si \code{strict = TRUE}).
+Logical vector de la misma longitud que \code{codes}. TRUE si el
+código tiene formato CIE-10 válido (y existe en DB si \code{strict = TRUE}).
 }
 \description{
-Validar vector de codigos CIE-10 formato
+Validar vector de códigos CIE-10 formato
 }
 \examples{
 cie_validate_vector(c("E11.0", "INVALIDO", "Z00"))
 }
 \seealso{
-\code{\link{cie_normalizar}}, \code{\link{cie_expand}}
+\code{\link[=cie_norm]{cie_norm()}}, \code{\link[=cie_expand]{cie_expand()}}
 
-Other validacion: 
-\code{\link{cie_expand}()},
-\code{\link{cie_normalizar}()}
+Other validacion:
+\code{\link[=cie_expand]{cie_expand()}},
+\code{\link[=cie_norm]{cie_norm()}},
+\code{\link[=cie_normalizar]{cie_normalizar()}}
 }
 \concept{validacion}

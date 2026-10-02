@@ -1,10 +1,10 @@
 ---
-title: "Introduction to ciecl: Chilean ICD-10 in R"
+title: "Primeros pasos con ciecl: un reporte de egresos hospitalarios"
 author: "Rodolfo Tasso Suazo"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Introduction to ciecl: Chilean ICD-10 in R}
+  %\VignetteIndexEntry{Primeros pasos con ciecl: un reporte de egresos hospitalarios}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,85 +12,195 @@ vignette: >
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.width = 7,
-  fig.height = 5
+  comment = "#>"
 )
 library(ciecl)
+library(dplyr)
 ```
 
-> **Version 0.9.3**: Available on CRAN with SQLite optimizations and XLSX support.
+## ¿Para quién es esta guía?
 
-## About the dataset
+Imagina que trabajas en la unidad de estadística de un hospital y cada mes eres la persona encargada de elaborar el **reporte de egresos por diabetes** para la dirección del servicio. Recibes la base de egresos hospitalarios, y tu objetivo es responder preguntas concretas: ¿cuántos egresos tuvieron como diagnóstico principal una diabetes?, ¿de qué tipo?, ¿qué tan complejos eran esos pacientes?
 
-The package includes **39,877 ICD-10 codes** from the official MINSAL/DEIS v2018 catalog,
-including categories (3 digits) and subcategories (4+ digits).
+El problema es que la base llega con códigos CIE-10 en formatos inconsistentes y sin descripciones: para interpretarlos tendrías que consultar a mano el catálogo oficial en PDF o Excel. `ciecl` elimina ese paso: incorpora el catálogo oficial CIE-10 de Chile (MINSAL/DEIS v2018) dentro de R y te permite normalizar, describir, buscar y analizar los códigos directamente sobre tu base.
 
-## Installation
+Esta guía recorre ese flujo completo, de lo básico a lo avanzado. Solo necesitas conocimientos básicos de R; si además usas `dplyr`, los ejemplos encajan directo en tus pipelines.
 
-```{r eval=FALSE}
-# From GitHub (beta version)
-pak::pak("RodoTasso/ciecl")
+## Los datos: egresos hospitalarios del DEIS
 
-# Alternative with devtools
-devtools::install_github("RodoTasso/ciecl")
-```
+Las bases de **Egresos Hospitalarios** las publica el Departamento de Estadísticas e Información de Salud (DEIS) del Ministerio de Salud de Chile. Cada fila es un alta hospitalaria y la columna `DIAG1` contiene el diagnóstico principal codificado en CIE-10.
 
-## Fast SQL search
+En la práctica, estos archivos llegan con dos variaciones de formato muy comunes:
 
-```{r}
-# All type 2 diabetes codes
-cie10_sql("SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE 'E11%' LIMIT 5")
-```
+1.  **Formatos compactos**: códigos sin punto decimal (ej: `J189` en lugar de `J18.9`).
+2.  **Sufijos de relleno**: una letra `X` para completar la longitud del campo en categorías de 3 dígitos (ej: `I10X` para hipertensión esencial).
 
-## Search by code
+Generemos un conjunto de datos sintético que replica la estructura y las anomalías típicas de los archivos del DEIS:
 
-```{r}
-# Single code search
-cie_lookup("E11.0")
+```{r datos}
+set.seed(42)
 
-# Vectorized search - multiple codes at once
-codes <- c("E11.0", "I10", "Z00", "J44.0")
-cie_lookup(codes)
-
-# Hierarchical expansion
-cie_lookup("E11", expandir = TRUE)
-```
-
-## Fuzzy search with typos
-
-```{r}
-# Finds even if misspelled
-cie_search("diabetis with coma", threshold = 0.75)
-```
-
-## Charlson Comorbidities
-
-```{r eval=FALSE}
-# Requires: install.packages("comorbidity")
-patient_df <- data.frame(
-  patient_id = c(1, 1, 2, 2, 3),
-  diagnosis = c("E11.0", "I50.9", "C50.9", "N18.5", "J44.0")
+# Simulación de 200 registros con formatos típicos del DEIS Chile
+egresos <- data.frame(
+  ID_EGRESO = 1:200,
+  PACIENTE_ID = sample(1:50, 200, replace = TRUE),
+  ANO       = sample(2018:2022, 200, replace = TRUE),
+  DIAG1     = sample(
+    c(
+      "J189", "O800", "Z380", "K359", "N390",
+      "I10X", "J449", "E119", "O829", "J069",
+      "K922", "N185", "I509", "C509", "A099",
+      "N40X", "K800", "I259", "J180", "E149"
+    ),
+    size    = 200,
+    replace = TRUE
+  ),
+  stringsAsFactors = FALSE
 )
 
-cie_comorbid(patient_df, id = "patient_id", code = "diagnosis", map = "charlson")
+head(egresos)
 ```
 
-## Interactive tables
+## Paso 1: Normalizar los códigos con `cie_norm()`
 
-```{r eval=FALSE}
-# Requires: install.packages("gt")
-cie_table("E11")  # Full GT visualization
+Antes de cualquier análisis hay que estandarizar `DIAG1`. `cie_norm()` aplica las reglas de codificación oficial del MINSAL de forma vectorizada: elimina la `X` de relleno, inserta el punto decimal en la posición correcta y limpia espacios, guiones y símbolos especiales (como † o *).
+
+```{r normalizacion}
+# Limpieza y estandarización de diagnósticos en el flujo de trabajo
+egresos <- egresos |>
+  mutate(
+    DIAG1_NORM = cie_norm(codes = DIAG1)
+  )
+
+# Comparación entre formato original y normalizado
+egresos |>
+  select(DIAG1, DIAG1_NORM) |>
+  distinct() |>
+  head(5)
 ```
 
-## Data source
+Con esto, `I10X` quedó como `I10` y `J189` como `J18.9`: los códigos ya son comparables con el catálogo oficial.
 
-Official ICD-10 Chile data MINSAL/DEIS v2018:
+## Paso 2: Agregar las descripciones oficiales con `cie_describe()`
 
-- FIC Chile Center: <https://deis.minsal.cl/centrofic/>
-- DEIS Repository: <https://deis.minsal.cl>
+Para el reporte necesitas las glosas clínicas, no solo los códigos. `cie_describe()` devuelve un vector de texto con una descripción por cada código, así que puedes agregarlo como una columna más de tu tabla con `mutate()`, sin pasos intermedios:
 
-## More information
+```{r describe}
+# Integración directa de descripciones al dataframe principal
+egresos_full <- egresos |>
+  mutate(
+    descripcion = cie_describe(DIAG1_NORM)
+  )
 
-- Report issues: <https://github.com/RodoTasso/ciecl/issues>
-- Repository: <https://github.com/RodoTasso/ciecl>
+head(egresos_full |> select(ID_EGRESO, DIAG1, descripcion))
+```
+
+Si además de la glosa necesitas la metadata completa (capítulo, grupo, notas de inclusión/exclusión), usa `cie_lookup()`, que devuelve un `tibble` estructurado listo para un `left_join()`:
+
+```{r lookup}
+# Obtención de metadata completa vía lookup + join
+metadata <- cie_lookup(
+  code = unique(egresos$DIAG1_NORM),
+  full_description = TRUE
+)
+
+egresos_metadata <- egresos |>
+  left_join(metadata, by = c("DIAG1_NORM" = "codigo"))
+```
+
+## Paso 3: Encontrar códigos cuando no sabes el código con `cie_search()`
+
+Volvamos a tu reporte de diabetes: sospechas que en la base hay egresos por diabetes, pero ¿qué códigos exactos cubre el catálogo? En vez de hojear el PDF, buscas por texto. `cie_search()` usa similitud Jaro-Winkler, así que tolera errores tipográficos (aquí buscamos "diabetis" a propósito):
+
+```{r busqueda}
+# Búsqueda tolerante: "diabetis" en lugar de "diabetes"
+# (por defecto se muestran los 50 resultados más parecidos;
+#  ampliamos el límite porque el catálogo tiene muchos códigos de diabetes)
+resultados_busqueda <- cie_search(text = "diabetis", threshold = 0.7, max_results = 100)
+
+resultados_busqueda
+```
+
+Cada resultado incluye un `score` de similitud para evaluar la confiabilidad de la coincidencia. Pero la tabla anterior lista todos los códigos de diabetes del catálogo, y no todos necesariamente están en tu base. Para saber cuáles sí, basta con cruzar los resultados de la búsqueda con los códigos que realmente aparecen en tus datos:
+
+```{r cruce}
+# ¿Qué códigos de diabetes están realmente en mi base?
+codigos_diabetes <- intersect(
+  resultados_busqueda$codigo,
+  unique(egresos$DIAG1_NORM)
+)
+
+codigos_diabetes
+```
+
+Como se ve en el resultado, de todos los códigos de diabetes del catálogo solo dos están presentes en la columna `DIAG1` de tu base: `E11.9` y `E14.9`. El cruce identifica qué códigos contienen realmente tus datos, sin tener que revisar la tabla completa a mano. Con esa lista ya puedes filtrar los egresos y cerrar el reporte:
+
+```{r reporte-diabetes}
+# Reporte final: egresos por diabetes, resumidos por tipo
+egresos_full |>
+  filter(DIAG1_NORM %in% codigos_diabetes) |>
+  count(descripcion, sort = TRUE)
+```
+
+Con esto tu reporte mensual de egresos por diabetes queda listo: sabes cuántos hubo y de qué tipo, con las glosas oficiales del catálogo.
+
+## Cuando la búsqueda no entrega resultados
+
+Es normal que algunas consultas no encuentren nada, y conviene saber cómo se comporta el paquete en esos casos: **las funciones nunca fallan con un error por ausencia de resultados; devuelven un `tibble` vacío con la estructura de columnas correcta** y un mensaje informativo.
+
+Si buscas un código que no existe en el catálogo:
+
+```{r sin-resultados-lookup}
+cie_lookup("XYZ123")
+```
+
+Si el umbral de `cie_search()` es demasiado estricto para el término ingresado:
+
+```{r sin-resultados-search}
+cie_search("zzzqwerty", threshold = 0.95)
+```
+
+En ambos casos el flujo no se interrumpe: puedes verificar `nrow(resultado) == 0` y reaccionar (bajar el `threshold`, revisar la ortografía o validar el código). Para chequear rápidamente qué códigos de un vector son válidos según el catálogo, usa `cie_validate_vector()`:
+
+```{r validacion}
+cie_validate_vector(c("E11.0", "XYZ123", "I10X"))
+```
+
+## Paso 4: Estratificar riesgo con `cie_comorbid()`
+
+El último nivel del reporte es la complejidad de los pacientes. `cie_comorbid()` mapea los diagnósticos a los índices de Charlson o Elixhauser y devuelve una matriz de comorbilidades por paciente, lista para modelos estadísticos:
+
+```{r comorbilidad, eval=rlang::is_installed("comorbidity")}
+# Requiere el paquete 'comorbidity' instalado
+# Cálculo del Índice de Charlson consolidado por paciente
+comorbilidades <- cie_comorbid(
+  data = egresos,
+  id = "PACIENTE_ID",
+  code = "DIAG1",
+  map = "charlson"
+)
+
+head(comorbilidades, 10)
+```
+
+## Resumen del flujo
+
+El recorrido de esta guía cubre el ciclo completo desde la base cruda hasta el insumo analítico:
+
+1.  **Estandarización**: corrección de formatos con `cie_norm()`.
+2.  **Contextualización**: glosas oficiales con `cie_describe()` y metadata con `cie_lookup()`.
+3.  **Exploración**: búsqueda de códigos por texto con `cie_search()`, tolerante a errores y con comportamiento predecible cuando no hay resultados.
+4.  **Agregación**: índices de comorbilidad con `cie_comorbid()`.
+
+¿No sabes cuál función usar en otro escenario? Ejecuta `cie_guide()` para ver una tabla comparativa con la función recomendada y un ejemplo por caso.
+
+## Para seguir aprendiendo
+
+- [Guía de instalación y configuración](instalacion.html): instalación y credenciales para la API CIE-11 de la OMS.
+- [Introducción a ciecl: CIE-10 Chile en R](ciecl-es.html): recorrido por función, incluyendo consultas SQL directas con `cie10_sql()` y tablas formateadas con `cie_table()`.
+- [Idiomas y normalización](idiomas.html): búsqueda en español e inglés y manejo de tildes.
+
+---
+
+**Fuente de datos:**
+Esta herramienta utiliza el catálogo CIE-10 oficial para Chile, gestionado por el DEIS del Ministerio de Salud. Más detalles en [deis.minsal.cl](https://deis.minsal.cl).

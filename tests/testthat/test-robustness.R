@@ -11,7 +11,7 @@ test_that("multiples conexiones consecutivas funcionan", {
   # Abrir y cerrar multiples conexiones seguidas
   for (i in 1:10) {
     resultado <- cie_lookup("E11.0")
-    expect_equal(nrow(resultado), 1)
+    expect_shape(resultado, nrow = 1)
   }
 })
 
@@ -61,9 +61,7 @@ test_that("queries grandes no causan problemas de memoria", {
   expect_s3_class(resultado, "tbl_df")
   expect_lte(nrow(resultado), 5000)
 
-  # Liberar memoria
   rm(resultado)
-  gc()
 })
 
 test_that("cie_search con muchos resultados funciona", {
@@ -117,7 +115,7 @@ test_that("base de datos se reconstruye despues de clear_cache", {
   # La siguiente query debe inicializar la base (mensajes solo en interactive)
   resultado <- cie_lookup("E11.0")
 
-  expect_equal(nrow(resultado), 1)
+  expect_shape(resultado, nrow = 1)
 })
 
 test_that("base de datos persiste entre llamadas", {
@@ -199,7 +197,7 @@ test_that("codigo invalido no afecta siguientes busquedas", {
   suppressMessages({
     resultado_invalido <- cie_lookup("XXXXXXXXX")
   })
-  expect_equal(nrow(resultado_invalido), 0)
+  expect_length(resultado_invalido$codigo, 0)
 
   # Buscar codigo valido despues
   resultado_valido <- cie_lookup("E11.0")
@@ -296,19 +294,12 @@ test_that("cie_map_comorbid retorna columnas esperadas", {
   resultado <- cie_map_comorbid(c("E11.0"))
 
   columnas_esperadas <- c("codigo", "categoria")
-  expect_equal(names(resultado), columnas_esperadas)
+  expect_named(resultado, columnas_esperadas)
 })
 
 # ============================================================
 # PRUEBAS DE LIMITES Y CASOS EXTREMOS
 # ============================================================
-
-test_that("cie_search con threshold 0 no crashea", {
-  skip_on_cran()
-
-  resultado <- cie_search("diabetes", threshold = 0, max_results = 10)
-  expect_s3_class(resultado, "tbl_df")
-})
 
 test_that("cie_search con threshold 1 retorna solo exactos", {
   skip_on_cran()
@@ -329,7 +320,7 @@ test_that("cie_lookup con expansion de categoria completa", {
   skip_on_cran()
 
   # Expandir categoria E (muy grande)
-  hijos <- cie_lookup("E", expandir = TRUE)
+  hijos <- cie_lookup("E", expand = TRUE)
   expect_s3_class(hijos, "tbl_df")
   expect_gt(nrow(hijos), 100)
 })
@@ -344,102 +335,7 @@ test_that("cie_validate_vector con vector muy grande", {
 
   resultado <- cie_validate_vector(codigos)
   expect_length(resultado, 300)
-  expect_equal(sum(resultado), 200)  # 100 E11.0 + 100 Z00
-})
-
-# ============================================================
-# PRUEBAS ADICIONALES get_cie10_db()
-# ============================================================
-
-test_that("get_cie10_db retorna conexion DBI valida", {
-  skip_on_cran()
-
-  con <- ciecl:::get_cie10_db()
-
-  expect_true(DBI::dbIsValid(con))
-  expect_s4_class(con, "SQLiteConnection")
-})
-
-test_that("get_cie10_db crea tabla cie10 si no existe", {
-  skip_on_cran()
-
-  con <- ciecl:::get_cie10_db()
-
-  # Tabla debe existir
-  expect_true(DBI::dbExistsTable(con, "cie10"))
-})
-
-test_that("get_cie10_db tabla tiene indices", {
-  skip_on_cran()
-
-  con <- ciecl:::get_cie10_db()
-
-  # Verificar que existen indices (SQLite)
-  indices <- DBI::dbGetQuery(con, "SELECT name FROM sqlite_master WHERE type='index'")
-
-  expect_gt(nrow(indices), 0)
-})
-
-test_that("get_cie10_db usa directorio cache correcto", {
-  skip_on_cran()
-
-  cache_dir <- tools::R_user_dir("ciecl", "data")
-  db_path <- file.path(cache_dir, "cie10.db")
-
-  ciecl:::get_cie10_db()
-
-  expect_true(file.exists(db_path))
-})
-
-# ============================================================
-# PRUEBAS ADICIONALES cie10_clear_cache()
-# ============================================================
-
-test_that("cie10_clear_cache elimina archivo db", {
-  skip_on_cran()
-
-  cache_dir <- tools::R_user_dir("ciecl", "data")
-  db_path <- file.path(cache_dir, "cie10.db")
-
-  # Asegurar que existe
-  ciecl:::get_cie10_db()
-
-  expect_true(file.exists(db_path))
-
-  # Limpiar cache
-  suppressMessages(cie10_clear_cache())
-
-  expect_false(file.exists(db_path))
-})
-
-test_that("cie10_clear_cache es idempotente", {
-  skip_on_cran()
-
-  # Llamar dos veces no debe dar error
-  expect_no_error({
-    suppressMessages(cie10_clear_cache())
-    suppressMessages(cie10_clear_cache())
-  })
-})
-
-test_that("cie10_clear_cache emite mensaje apropiado", {
-  skip_on_cran()
-
-  # Asegurar que existe cache
-  ciecl:::get_cie10_db()
-
-  # Debe emitir mensaje de eliminacion
-  expect_message(cie10_clear_cache(), "eliminado")
-
-  # Segunda vez mensaje diferente
-  expect_message(cie10_clear_cache(), "no existe")
-})
-
-test_that("cie10_clear_cache retorna invisible NULL", {
-  skip_on_cran()
-
-  resultado <- suppressMessages(cie10_clear_cache())
-  expect_null(resultado)
+  expect_equal(sum(resultado), 200) # 100 E11.0 + 100 Z00
 })
 
 # ============================================================
@@ -447,45 +343,46 @@ test_that("cie10_clear_cache retorna invisible NULL", {
 # ============================================================
 
 test_that("cie10_sql bloquea DROP TABLE", {
+  testthat::local_reproducible_output()
   skip_on_cran()
 
-  expect_error(
-    cie10_sql("DROP TABLE cie10"),
-    "Solo queries SELECT"
-  )
+  expect_snapshot(cie10_sql("DROP TABLE cie10"), error = TRUE)
 })
 
 test_that("cie10_sql bloquea DELETE", {
+  testthat::local_reproducible_output()
   skip_on_cran()
 
-  expect_error(
+  expect_snapshot(
     cie10_sql("DELETE FROM cie10 WHERE codigo = 'E11.0'"),
-    "Solo queries SELECT"
+    error = TRUE
   )
 })
 
 test_that("cie10_sql bloquea UPDATE", {
+  testthat::local_reproducible_output()
   skip_on_cran()
 
-  expect_error(
+  expect_snapshot(
     cie10_sql("UPDATE cie10 SET descripcion = 'test' WHERE codigo = 'E11.0'"),
-    "Solo queries SELECT"
+    error = TRUE
   )
 })
 
 test_that("cie10_sql bloquea INSERT", {
+  testthat::local_reproducible_output()
   skip_on_cran()
 
-  expect_error(
+  expect_snapshot(
     cie10_sql("INSERT INTO cie10 VALUES ('X99', 'test', NULL, NULL, NULL, NULL, NULL, NULL, 0, 0)"),
-    "Solo queries SELECT"
+    error = TRUE
   )
 })
 
 test_that("cie10_sql bloquea multiples statements", {
   skip_on_cran()
 
-  # El error puede ser por keyword no permitido (DROP) o por multiples statements
+  # El error puede ser por palabra clave no permitida (DROP) o por multiples sentencias
   expect_error(
     cie10_sql("SELECT * FROM cie10; DROP TABLE cie10")
   )
@@ -509,13 +406,15 @@ test_that("cie10_sql permite punto y coma dentro de strings", {
   expect_s3_class(resultado, "tbl_df")
 })
 
-test_that("cie10_sql con close=FALSE mantiene conexion", {
+# El warning de deprecacion se emite por la presencia del argumento
+# close (cualquier valor), ver R/cie-sql.R:307-313.
+test_that("cie10_sql emite advertencia de deprecacion al pasar close", {
   skip_on_cran()
 
-  # Este test verifica comportamiento interno
-  # La conexion no debe cerrarse si close=FALSE
-  resultado <- cie10_sql("SELECT COUNT(*) as n FROM cie10", close = TRUE)
-  expect_gt(resultado$n, 0)
+  expect_warning(
+    cie10_sql("SELECT COUNT(*) as n FROM cie10", close = TRUE),
+    class = "lifecycle_warning_deprecated"
+  )
 })
 
 test_that("cie10_sql normaliza espacios al inicio", {

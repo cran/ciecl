@@ -63,14 +63,14 @@ test_that("cie_normalizar 500K codigos < 5s", {
   codigos_sim[501:1000] <- paste0(" ", codigos_sim[501:1000], " ")
 
   t <- system.time({
-    resultado <- cie_normalizar(codigos_sim, buscar_db = TRUE)
+    resultado <- cie_norm(codigos_sim, search_db = TRUE)
   })
 
   expect_true(t["elapsed"] < 5,
     label = sprintf("normalizar 500K: %.2fs (limite 5s)", t["elapsed"]))
   expect_length(resultado, 5e5)
   # Verificar que normalizo correctamente
-  expect_false(any(grepl("^\\s|\\s$", resultado, perl = TRUE), na.rm = TRUE))
+  expect_no_match(resultado[!is.na(resultado)], "^\\s|\\s$", perl = TRUE)
 })
 
 test_that("cie_map_comorbid 100K codigos vectorizado", {

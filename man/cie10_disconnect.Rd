@@ -2,30 +2,48 @@
 % Please edit documentation in R/cie-sql.R
 \name{cie10_disconnect}
 \alias{cie10_disconnect}
-\title{Cerrar conexion pooled SQLite}
+\title{Cerrar conexión pooled SQLite}
 \usage{
 cie10_disconnect()
 }
 \value{
-No return value, called for side effects.
+Sin valor de retorno, se llama por sus efectos secundarios
+(cierra la conexión SQLite pooled).
 }
 \description{
-Cierra la conexion reutilizable al archivo SQLite.
-Util para liberar el lock del archivo .db.
+\code{ciecl} mantiene una única conexión SQLite reutilizable ("pooled")
+abierta al archivo \code{cie10.db} durante la sesión, en lugar de abrir y
+cerrar una conexión por cada consulta. Mientras esa conexión está
+abierta, SQLite mantiene un "lock" (bloqueo) sobre el archivo \code{.db}:
+es la forma en que SQLite evita lecturas/escrituras concurrentes
+inconsistentes sobre el mismo archivo. Esta función cierra esa
+conexión y libera el lock.
+
+Solo hace falta llamarla manualmente en dos casos: cuando se va a
+eliminar o reemplazar el archivo \code{cie10.db} por fuera del paquete
+(por ejemplo, con herramientas del sistema operativo), o al finalizar
+un proceso batch largo para no dejar el archivo bloqueado. Para usar
+\code{\link[=cie10_clear_cache]{cie10_clear_cache()}} no es necesario llamarla antes: esa función ya
+cierra la conexión pooled internamente. Si no se libera el lock, el
+archivo \code{.db} puede seguir abierto hasta que termine la sesión de R;
+en la práctica esto rara vez es un problema porque cada sesión de R
+tiene su propia conexión, pero impide que otro proceso externo (no R)
+edite el archivo mientras la conexión esté abierta.
 }
 \examples{
-# Verificar si hay conexion activa
-is.null(ciecl:::.ciecl_env$con)
+# No hay un ejemplo no interactivo: el objeto de conexion vive en un
+# entorno interno del paquete (.ciecl_env) y no es parte de la API
+# publica, por lo que no hay nada que inspeccionar desde afuera.
 
-\donttest{
+\dontshow{if (rlang::is_interactive() || identical(Sys.getenv("IN_PKGDOWN"), "true")) withAutoprint(\{ # examplesIf}
 cie10_disconnect()
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link{cie10_sql}}, \code{\link{cie10_clear_cache}}
+\code{\link[=cie10_sql]{cie10_sql()}}, \code{\link[=cie10_clear_cache]{cie10_clear_cache()}}
 
-Other sql: 
-\code{\link{cie10_clear_cache}()},
-\code{\link{cie10_sql}()}
+Other sql_backend:
+\code{\link[=cie10_clear_cache]{cie10_clear_cache()}},
+\code{\link[=cie10_sql]{cie10_sql()}}
 }
-\concept{sql}
+\concept{sql_backend}

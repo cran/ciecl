@@ -1,0 +1,149 @@
+---
+title: "Introduction to ciecl: Chilean ICD-10 in R"
+author: "Rodolfo Tasso Suazo"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to ciecl: Chilean ICD-10 in R}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+library(ciecl)
+```
+
+> **Version 0.9.8**: Available on CRAN with SQLite optimizations, XLSX support, and standardized English arguments.
+
+## The problem: working with Chilean diagnostic codes in R
+
+Chilean health information systems — DEIS, GRD, REM — store diagnoses using the ICD-10 classification in its official MINSAL/DEIS v2018 version. Analysts working with these datasets in R typically have to cross-reference PDF catalogs, Excel tables, or ministry websites to look up codes, which breaks the analytical workflow.
+
+`ciecl` solves this by embedding all **39,877 ICD-10 codes** from the official catalog directly into R, with functions for fast lookup, hierarchical expansion, fuzzy search, and comorbidity scoring.
+
+## Installation
+
+The package is available on CRAN:
+
+```{r eval=FALSE}
+install.packages("ciecl")
+```
+
+To install the development version with the latest fixes:
+
+```{r eval=FALSE}
+# Requires the pak package
+pak::pak("ropensci/ciecl")
+```
+
+## Direct SQL queries against the catalog
+
+`cie10_sql()` exposes the full catalog through a local SQLite database, allowing you to filter with the full expressiveness of SQL. This is useful when you know the code structure but not the exact label — for instance, to retrieve all subcodes within a category.
+
+The example below fetches the first five type 2 diabetes codes (category E11):
+
+```{r}
+cie10_sql("SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE 'E11%' LIMIT 5")
+```
+
+Only `SELECT` queries are accepted, protecting catalog integrity.
+
+## Looking up known codes
+
+When codes are already present in your data — such as hospital discharge diagnoses — `cie_lookup()` retrieves the official description for one or more codes at once.
+
+```{r}
+# Single code
+cie_lookup("E11.0")
+```
+
+The function accepts vectors, making it straightforward to use inside a `dplyr` pipeline:
+
+```{r}
+# Multiple codes from different chapters
+cie_lookup(c("E11.0", "I10", "Z00", "J44.0"))
+```
+
+When working at the category level (three-digit codes), you may need all subcodes within a category. The `expand = TRUE` argument traverses the hierarchy and returns the parent category together with all its children:
+
+```{r}
+cie_lookup("E11", expand = TRUE)
+```
+
+## Extracting descriptions for use in tables and plots
+
+When you only need the description text — without the full structure returned by `cie_lookup()` — `cie_describe()` returns a character vector of descriptions in the same order as the input codes. This is designed for use inside `mutate()` or as axis labels in plots:
+
+```{r}
+cie_describe(c("E11.0", "I10"))
+```
+
+A typical use case with hospital discharge data:
+
+```{r}
+library(dplyr)
+
+discharges <- data.frame(
+  id          = 1:4,
+  diag_code   = c("E11.0", "I10", "J44.0", "E11.0")
+)
+
+discharges |>
+  mutate(description = cie_describe(diag_code))
+```
+
+## Fuzzy search with tolerance for misspellings
+
+Clinical text data often contains spelling errors, abbreviations, or non-standard terms. `cie_search()` uses Jaro-Winkler string similarity to find matching codes even when the search term contains typos.
+
+The `threshold` parameter controls strictness: higher values require closer matches. A range of 0.70 to 0.85 works well in practice:
+
+```{r}
+# "diabetis" instead of "diabetes" — the typo does not prevent finding the code
+cie_search("diabetis with coma", threshold = 0.75)
+```
+
+## Charlson and Elixhauser comorbidity indices
+
+The Charlson and Elixhauser indices are widely used in clinical research and risk adjustment. `cie_comorbid()` computes these indices from a data frame containing patient identifiers and their associated diagnostic codes.
+
+This function requires the `comorbidity` package. Install it with `install.packages("comorbidity")` if needed:
+
+```{r eval=rlang::is_installed("comorbidity")}
+# Requires: install.packages("comorbidity")
+patient_df <- data.frame(
+  patient_id  = c(1, 1, 2, 2, 3),
+  diagnosis   = c("E11.0", "I50.9", "C50.9", "N18.5", "J44.0")
+)
+
+cie_comorbid(patient_df, id = "patient_id", code = "diagnosis", map = "charlson")
+```
+
+The result is a data frame with one row per patient and columns for each condition in the selected index, plus a weighted total score.
+
+## Formatted tables with gt
+
+For reports and presentations, `cie_table()` generates an enriched HTML table of all codes within a category using the `gt` package. Requires `gt` to be installed:
+
+```{r eval=rlang::is_installed("gt")}
+# Requires: install.packages("gt")
+cie_table("E11")
+```
+
+## Data source
+
+The data included in `ciecl` comes from the official ICD-10 catalog published by the Chilean Ministry of Health through the Department of Health Statistics and Information (DEIS):
+
+- FIC Chile Center: <https://deis.minsal.cl/centrofic/>
+- DEIS Repository: <https://deis.minsal.cl>
+
+## Collaboration and Support
+
+- Report issues or suggestions: <https://github.com/ropensci/ciecl/issues>
+- Package repository: <https://github.com/ropensci/ciecl>

@@ -12,9 +12,9 @@
 
 <meta name="author" content="Rodolfo Tasso Suazo" />
 
-<meta name="date" content="2026-04-18" />
+<meta name="date" content="2026-10-02" />
 
-<title>Guia de Instalacion y Configuracion</title>
+<title>Guía de Instalación y Configuración</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -339,72 +339,67 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Guia de Instalacion y Configuracion</h1>
+<h1 class="title toc-ignore">Guía de Instalación y Configuración</h1>
 <h4 class="author">Rodolfo Tasso Suazo</h4>
-<h4 class="date">2026-04-18</h4>
+<h4 class="date">2026-10-02</h4>
 
 
 
-<div id="instalacion-basica" class="section level2">
-<h2>Instalacion Basica</h2>
-<div id="desde-cran-cuando-este-disponible" class="section level3">
-<h3>Desde CRAN (cuando este disponible)</h3>
+<p>Esta guía está pensada para personas que trabajan con bases de datos
+de salud y que quizás están recién aprendiendo R: para ellas, instalar
+un paquete desde GitHub con <code>pak</code> y configurar la API key de
+la OMS no son pasos obvios, así que aquí se explican con detalle. Si ya
+tienes experiencia con R, puedes saltarte esta viñeta: basta con
+<code>pak::pak(&quot;ropensci/ciecl&quot;)</code> para empezar.</p>
+<div id="instalación" class="section level2">
+<h2>Instalación</h2>
+<p>La forma más simple de instalar <code>ciecl</code> es con el paquete
+<a href="https://pak.r-lib.org/"><code>pak</code></a>, que resuelve
+automáticamente las dependencias de R y del sistema operativo.</p>
+<div id="desde-cran-versión-estable" class="section level3">
+<h3>Desde CRAN (versión estable)</h3>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;ciecl&quot;</span>)</span></code></pre></div>
 </div>
-<div id="desde-github-version-desarrollo" class="section level3">
-<h3>Desde GitHub (version desarrollo)</h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Opcion 1: pak (recomendado)</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;pak&quot;</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co"># Opcion 2: devtools</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;devtools&quot;</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>)</span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co"># Opcion 3: remotes</span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;remotes&quot;</span>)</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>)</span></code></pre></div>
+<div id="desde-github-versión-de-desarrollo" class="section level3">
+<h3>Desde GitHub (versión de desarrollo)</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;pak&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;ropensci/ciecl&quot;</span>)</span></code></pre></div>
+<p>Para instalar además todas las dependencias opcionales
+(comorbilidades, tablas GT, API CIE-11):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;ropensci/ciecl&quot;</span>, <span class="at">dependencies =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 </div>
-</div>
-<div id="instalacion-con-dependencias-opcionales" class="section level2">
-<h2>Instalacion con Dependencias Opcionales</h2>
-<p>El paquete tiene dependencias minimas para funcionalidad core. Para
-habilitar todas las funcionalidades:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Instalacion completa con todos los paquetes opcionales</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>, <span class="at">dependencies =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <div id="dependencias-por-funcionalidad" class="section level3">
-<h3>Dependencias por Funcionalidad</h3>
+<h3>Dependencias por funcionalidad</h3>
+<p>El núcleo del paquete (búsqueda y consulta de códigos CIE-10) no
+requiere paquetes opcionales. Estas son las dependencias sugeridas según
+la tarea:</p>
 <table>
 <colgroup>
-<col width="31%" />
 <col width="40%" />
-<col width="27%" />
+<col width="24%" />
+<col width="35%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th>Funcionalidad</th>
-<th>Paquete Requerido</th>
-<th>Instalacion</th>
+<th>Paquete</th>
+<th>Instalación</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Comorbilidades Charlson/Elixhauser</td>
+<td>Índices de comorbilidad Charlson/Elixhauser con
+<code>cie_comorbid()</code></td>
 <td><code>comorbidity</code></td>
 <td><code>install.packages(&quot;comorbidity&quot;)</code></td>
 </tr>
 <tr class="even">
-<td>Tablas interactivas GT</td>
+<td>Tablas HTML formateadas con <code>cie_table()</code></td>
 <td><code>gt</code></td>
 <td><code>install.packages(&quot;gt&quot;)</code></td>
 </tr>
 <tr class="odd">
-<td>API CIE-11 OMS</td>
-<td><code>httr2</code></td>
-<td><code>install.packages(&quot;httr2&quot;)</code></td>
-</tr>
-<tr class="even">
-<td>Leer archivos Excel MINSAL</td>
+<td>Leer archivos Excel del MINSAL</td>
 <td><code>readxl</code></td>
 <td><code>install.packages(&quot;readxl&quot;)</code></td>
 </tr>
@@ -413,15 +408,15 @@ habilitar todas las funcionalidades:</p>
 </div>
 </div>
 <div id="requisitos-del-sistema" class="section level2">
-<h2>Requisitos del Sistema</h2>
+<h2>Requisitos del sistema</h2>
 <div id="windows" class="section level3">
 <h3>Windows</h3>
-<p>No requiere dependencias adicionales. La instalacion funciona
+<p>No requiere dependencias adicionales: la instalación funciona
 directamente.</p>
 </div>
 <div id="macos" class="section level3">
 <h3>macOS</h3>
-<p>Instalar Xcode Command Line Tools:</p>
+<p>Instala las Xcode Command Line Tools si compilas desde fuente:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">xcode-select</span> <span class="at">--install</span></span></code></pre></div>
 </div>
 <div id="linux-ubuntudebian" class="section level3">
@@ -442,104 +437,128 @@ directamente.</p>
 <span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  libxml2-devel</span></code></pre></div>
 </div>
 </div>
-<div id="configuracion-de-api-cie-11-opcional" class="section level2">
-<h2>Configuracion de API CIE-11 (Opcional)</h2>
-<p>Para usar <code>cie11_search()</code> y acceder a la clasificacion
-internacional CIE-11 de la OMS, necesitas credenciales gratuitas.</p>
+<div id="configuración-de-la-api-cie-11-opcional" class="section level2">
+<h2>Configuración de la API CIE-11 (opcional)</h2>
+<p>Las funciones de CIE-10 (núcleo del paquete) funcionan sin
+credenciales. Solo para usar <code>cie11_search()</code>, que consulta
+la clasificación CIE-11 de la OMS, necesitas credenciales gratuitas.</p>
+<blockquote>
+<p><strong>Seguridad:</strong> nunca escribas la llave literal en tus
+scripts (ni con <code>api_key = &quot;...&quot;</code>): al compartir el código
+expondrías tus credenciales. La vía recomendada es la variable de
+entorno <code>ICD_API_KEY</code>, configurada con
+<code>usethis::edit_r_environ()</code> (Opción B) o vía
+<code>keyring</code> (Opción A). El argumento <code>api_key</code> de
+<code>cie11_search()</code> existe solo para casos excepcionales (p. ej.
+múltiples llaves o entornos sin variables de entorno).</p>
+</blockquote>
 <div id="paso-1-obtener-credenciales" class="section level3">
-<h3>Paso 1: Obtener Credenciales</h3>
+<h3>Paso 1: Obtener credenciales</h3>
 <ol style="list-style-type: decimal">
 <li>Visita <a href="https://icd.who.int/icdapi" class="uri">https://icd.who.int/icdapi</a></li>
-<li>Registrate con tu email (proceso gratuito)</li>
-<li>Obtendras un <code>Client ID</code> y
+<li>Regístrate con tu email (proceso gratuito)</li>
+<li>Obtendrás un <code>Client ID</code> y un
 <code>Client Secret</code></li>
 </ol>
 </div>
-<div id="paso-2-configurar-variables-de-entorno" class="section level3">
-<h3>Paso 2: Configurar Variables de Entorno</h3>
-<p><strong>Opcion A: Archivo .Renviron (recomendado para uso
-permanente)</strong></p>
-<p>Crea o edita el archivo <code>~/.Renviron</code>:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Abrir archivo .Renviron para editar</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>usethis<span class="sc">::</span><span class="fu">edit_r_environ</span>()</span></code></pre></div>
-<p>Agrega la linea:</p>
+<div id="paso-2-guardar-las-credenciales" class="section level3">
+<h3>Paso 2: Guardar las credenciales</h3>
+<p><strong>Opción A: <code>keyring</code> (recomendado)</strong></p>
+<p>El paquete <a href="https://keyring.r-lib.org/"><code>keyring</code></a> guarda
+secretos en el keychain nativo del sistema operativo (macOS Keychain,
+Windows Credential Store, Linux Secret Service), evitando que el
+<code>Client ID</code> y el <code>Client Secret</code> queden en texto
+plano en <code>.Renviron</code>.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Una sola vez: guarda &quot;client_id:client_secret&quot; en el keychain</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>keyring<span class="sc">::</span><span class="fu">key_set</span>(<span class="st">&quot;ciecl_icd11&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># En cada sesión en la que uses la API</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">ICD_API_KEY =</span> keyring<span class="sc">::</span><span class="fu">key_get</span>(<span class="st">&quot;ciecl_icd11&quot;</span>))</span></code></pre></div>
+<p><strong>Opción B: Archivo <code>.Renviron</code></strong></p>
+<p>Crea o edita <code>~/.Renviron</code> (por ejemplo con
+<code>usethis::edit_r_environ()</code> si tienes <code>usethis</code>
+instalado) y agrega:</p>
 <pre><code>ICD_API_KEY=tu_client_id:tu_client_secret</code></pre>
-<p>Reinicia R para que tome efecto.</p>
-<p><strong>Opcion B: En cada sesion (temporal)</strong></p>
+<p>Reinicia R para que tome efecto. No subas <code>.Renviron</code> a
+Git.</p>
+<p><strong>Opción C: Solo en la sesión actual (temporal)</strong></p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">ICD_API_KEY =</span> <span class="st">&quot;tu_client_id:tu_client_secret&quot;</span>)</span></code></pre></div>
 </div>
-<div id="paso-3-verificar-configuracion" class="section level3">
-<h3>Paso 3: Verificar Configuracion</h3>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Verificar que la API key esta configurada</span></span>
+<div id="paso-3-verificar-la-configuración" class="section level3">
+<h3>Paso 3: Verificar la configuración</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Verificar que la variable de entorno esta definida</span></span>
 <span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">Sys.getenv</span>(<span class="st">&quot;ICD_API_KEY&quot;</span>)</span>
 <span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># Probar busqueda CIE-11</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># Probar una busqueda CIE-11</span></span>
 <span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">library</span>(ciecl)</span>
 <span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="fu">cie11_search</span>(<span class="st">&quot;diabetes&quot;</span>)</span></code></pre></div>
 </div>
 </div>
-<div id="cache-sqlite" class="section level2">
-<h2>Cache SQLite</h2>
-<p>El paquete usa SQLite para almacenar y buscar codigos CIE-10 de forma
-eficiente. La base de datos se crea automaticamente en:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Ver ubicacion del cache</span></span>
+<div id="caché-sqlite" class="section level2">
+<h2>Caché SQLite</h2>
+<p>El paquete usa una base SQLite local para búsquedas eficientes. Se
+crea automáticamente en la primera consulta, en el directorio de datos
+del usuario:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Ver la ubicacion del cache</span></span>
 <span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>tools<span class="sc">::</span><span class="fu">R_user_dir</span>(<span class="st">&quot;ciecl&quot;</span>, <span class="st">&quot;data&quot;</span>)</span></code></pre></div>
-<div id="limpiar-cache" class="section level3">
-<h3>Limpiar Cache</h3>
-<p>Si necesitas forzar una reconstruccion de la base de datos:</p>
+<p>Puedes cambiar esa ubicación definiendo la variable de entorno
+<code>CIECL_CACHE_DIR</code> antes de cargar el paquete. Si necesitas
+forzar la reconstrucción de la base (por ejemplo, tras actualizar el
+paquete):</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">library</span>(ciecl)</span>
 <span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">cie10_clear_cache</span>()</span></code></pre></div>
 </div>
-</div>
-<div id="verificar-instalacion" class="section level2">
-<h2>Verificar Instalacion</h2>
+<div id="verificar-la-instalación" class="section level2">
+<h2>Verificar la instalación</h2>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">library</span>(ciecl)</span>
 <span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a></span>
 <span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co"># Verificar que el paquete carga correctamente</span></span>
 <span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">packageVersion</span>(<span class="st">&quot;ciecl&quot;</span>)</span>
 <span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a></span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co"># Verificar acceso al dataset</span></span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="fu">nrow</span>(cie10_cl)  <span class="co"># Debe retornar 39873</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co"># Verificar acceso al catálogo</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="fu">nrow</span>(cie10_cl)</span>
 <span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a></span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co"># Probar busqueda basica</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co"># Probar búsqueda básica</span></span>
 <span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11.0&quot;</span>)</span>
 <span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a></span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co"># Probar busqueda fuzzy</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co"># Probar búsqueda fuzzy</span></span>
 <span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;diabetes&quot;</span>)</span></code></pre></div>
 </div>
 <div id="problemas-comunes" class="section level2">
-<h2>Problemas Comunes</h2>
+<h2>Problemas comunes</h2>
 <div id="error-package-ciecl-is-not-available" class="section level3">
 <h3>Error: “package ‘ciecl’ is not available”</h3>
-<p>Asegurate de instalar desde GitHub, no desde CRAN (aun no esta
-disponible):</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>)</span></code></pre></div>
+<p>Verifica que el repositorio de CRAN esté configurado en tu sesión de
+R y luego instala normalmente:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;ciecl&quot;</span>)</span></code></pre></div>
 </div>
-<div id="error-de-compilacion-en-linux" class="section level3">
-<h3>Error de compilacion en Linux</h3>
-<p>Instala las dependencias del sistema mencionadas arriba.</p>
+<div id="error-de-compilación-en-linux" class="section level3">
+<h3>Error de compilación en Linux</h3>
+<p>Instala las dependencias del sistema indicadas en la sección
+“Requisitos del sistema” y vuelve a intentar la instalación.</p>
 </div>
-<div id="api-cie-11-no-funciona" class="section level3">
-<h3>API CIE-11 no funciona</h3>
+<div id="la-api-cie-11-no-responde" class="section level3">
+<h3>La API CIE-11 no responde</h3>
 <ol style="list-style-type: decimal">
-<li>Verifica que <code>httr2</code> esta instalado:
-<code>install.packages(&quot;httr2&quot;)</code></li>
-<li>Verifica que la API key esta configurada:
-<code>Sys.getenv(&quot;ICD_API_KEY&quot;)</code></li>
-<li>Verifica conexion a internet</li>
+<li>Verifica que la credencial esté configurada:
+<code>Sys.getenv(&quot;ICD_API_KEY&quot;)</code> no debe retornar una cadena
+vacía.</li>
+<li>Verifica tu conexión a internet.</li>
+<li>Comprueba el estado del servicio de la OMS en <a href="https://icd.who.int/icdapi" class="uri">https://icd.who.int/icdapi</a>: si está caído, las funciones
+de CIE-10 siguen operativas porque no dependen de la API.</li>
 </ol>
 </div>
-<div id="cache-corrupto" class="section level3">
-<h3>Cache corrupto</h3>
-<p>Limpia el cache y reinicia R:</p>
+<div id="caché-corrupto" class="section level3">
+<h3>Caché corrupto</h3>
+<p>Limpia la caché y reinicia R:</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>ciecl<span class="sc">::</span><span class="fu">cie10_clear_cache</span>()</span></code></pre></div>
 </div>
 </div>
 <div id="soporte" class="section level2">
 <h2>Soporte</h2>
 <ul>
-<li>Reportar problemas: <a href="https://github.com/RodoTasso/ciecl/issues" class="uri">https://github.com/RodoTasso/ciecl/issues</a></li>
-<li>Documentacion: <a href="https://github.com/RodoTasso/ciecl" class="uri">https://github.com/RodoTasso/ciecl</a></li>
+<li>Reportar problemas: <a href="https://github.com/ropensci/ciecl/issues" class="uri">https://github.com/ropensci/ciecl/issues</a></li>
+<li>Documentación: <a href="https://docs.ropensci.org/ciecl/" class="uri">https://docs.ropensci.org/ciecl/</a></li>
 </ul>
 </div>
 

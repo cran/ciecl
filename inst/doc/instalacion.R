@@ -5,67 +5,60 @@ knitr::opts_chunk$set(
   eval = FALSE
 )
 
-## -----------------------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # install.packages("ciecl")
 
-## -----------------------------------------------------------------------------
-# # Opcion 1: pak (recomendado)
+## ----eval=FALSE---------------------------------------------------------------
 # install.packages("pak")
-# pak::pak("RodoTasso/ciecl")
+# pak::pak("ropensci/ciecl")
+
+## ----eval=FALSE---------------------------------------------------------------
+# pak::pak("ropensci/ciecl", dependencies = TRUE)
+
+## ----eval=FALSE---------------------------------------------------------------
+# # Una sola vez: guarda "client_id:client_secret" en el keychain
+# keyring::key_set("ciecl_icd11")
 # 
-# # Opcion 2: devtools
-# install.packages("devtools")
-# devtools::install_github("RodoTasso/ciecl")
-# 
-# # Opcion 3: remotes
-# install.packages("remotes")
-# remotes::install_github("RodoTasso/ciecl")
+# # En cada sesión en la que uses la API
+# Sys.setenv(ICD_API_KEY = keyring::key_get("ciecl_icd11"))
 
-## -----------------------------------------------------------------------------
-# # Instalacion completa con todos los paquetes opcionales
-# pak::pak("RodoTasso/ciecl", dependencies = TRUE)
-
-## -----------------------------------------------------------------------------
-# # Abrir archivo .Renviron para editar
-# usethis::edit_r_environ()
-
-## -----------------------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # Sys.setenv(ICD_API_KEY = "tu_client_id:tu_client_secret")
 
-## -----------------------------------------------------------------------------
-# # Verificar que la API key esta configurada
+## ----eval=FALSE---------------------------------------------------------------
+# # Verificar que la variable de entorno esta definida
 # Sys.getenv("ICD_API_KEY")
 # 
-# # Probar busqueda CIE-11
+# # Probar una busqueda CIE-11
 # library(ciecl)
 # cie11_search("diabetes")
 
-## -----------------------------------------------------------------------------
-# # Ver ubicacion del cache
+## ----eval=FALSE---------------------------------------------------------------
+# # Ver la ubicacion del cache
 # tools::R_user_dir("ciecl", "data")
 
-## -----------------------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # library(ciecl)
 # cie10_clear_cache()
 
-## -----------------------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # library(ciecl)
 # 
 # # Verificar que el paquete carga correctamente
 # packageVersion("ciecl")
 # 
-# # Verificar acceso al dataset
-# nrow(cie10_cl)  # Debe retornar 39873
+# # Verificar acceso al catálogo
+# nrow(cie10_cl)
 # 
-# # Probar busqueda basica
+# # Probar búsqueda básica
 # cie_lookup("E11.0")
 # 
-# # Probar busqueda fuzzy
+# # Probar búsqueda fuzzy
 # cie_search("diabetes")
 
-## -----------------------------------------------------------------------------
-# pak::pak("RodoTasso/ciecl")
+## ----eval=FALSE---------------------------------------------------------------
+# install.packages("ciecl")
 
-## -----------------------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # ciecl::cie10_clear_cache()
 

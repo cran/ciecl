@@ -1,67 +1,40 @@
 ## ----setup, include=FALSE-----------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  eval = FALSE
+  comment = "#>"
 )
 
 ## -----------------------------------------------------------------------------
-# library(ciecl)
-# 
-# # Ver estructura del dataset
-# head(cie10_cl)
-# #> # A tibble: 6 x 8
-# #>   codigo descripcion                    categoria inclusion exclusion capitulo
-# #>   <chr>  <chr>                          <chr>     <chr>     <chr>     <chr>
-# #> 1 A00    Colera                         A00       ...       ...       01
-# #> 2 A00.0  Colera debido a Vibrio...      A00       ...       ...       01
+library(ciecl)
+
+head(cie10_cl[, c("codigo", "descripcion", "capitulo")])
 
 ## -----------------------------------------------------------------------------
-# # Todas estas busquedas encuentran "neumonia"
-# cie_search("neumonia")
-# cie_search("neumonía")
-# cie_search("NEUMONIA")
-# 
-# # Funciona con n
-# cie_search("rinon")     # Encuentra "rinon"
-# cie_search("espanol")   # Encuentra terminos con "n"
+# Con o sin tilde: mismo resultado
+cie_search("neumonia")
+cie_search("neumonía")
+cie_search("NEUMONIA")
 
 ## -----------------------------------------------------------------------------
-# # Ver todas las siglas disponibles
-# cie_siglas()
-# 
-# # Filtrar por categoria
-# cie_siglas("cardiovascular")
-# cie_siglas("respiratoria")
-# cie_siglas("oncologica")
-# 
-# # Buscar usando siglas
-# cie_search("IAM")   # Infarto Agudo del Miocardio
-# cie_search("EPOC")  # Enfermedad Pulmonar Obstructiva Cronica
-# cie_search("DM2")   # Diabetes Mellitus tipo 2
-# cie_search("HTA")   # Hipertension Arterial
-# cie_search("TBC")   # Tuberculosis
+cie_search("rinon")
 
 ## -----------------------------------------------------------------------------
-# # Busqueda en espanol (default)
+# Listar todas las siglas disponibles
+head(cie_short())
+
+# Filtrar por categoría
+cie_short(category = "cardiovascular")
+
+# Usar la sigla directamente en búsqueda
+cie_search("IAM")   # Infarto Agudo del Miocardio
+cie_search("EPOC")  # Enfermedad Pulmonar Obstructiva Crónica
+cie_search("DM2")   # Diabetes Mellitus tipo 2
+
+## ----eval=FALSE---------------------------------------------------------------
+# # Búsqueda en español (por defecto)
+# # Requiere API Key OMS
 # cie11_search("diabetes mellitus", lang = "es")
-# 
-# # Busqueda en ingles
-# cie11_search("diabetes mellitus", lang = "en")
-# 
-# # Comparar resultados
-# es <- cie11_search("infarto", lang = "es")
-# en <- cie11_search("infarction", lang = "en")
 
 ## -----------------------------------------------------------------------------
-# # Configurar idioma por defecto en sesion
-# options(ciecl.lang = "es")
-# 
-# # Ahora todas las busquedas CIE-11 usaran espanol
-# cie11_search("neumonia")
-
-## -----------------------------------------------------------------------------
-# # Verificar encoding del dataset
-# Encoding(cie10_cl$descripcion[1])
-# #> [1] "UTF-8"
+Encoding(cie10_cl$descripcion[1])
 

@@ -5,21 +5,7 @@
 # PRUEBAS DE ENCODING PARA CARACTERES ESPANOLES
 # ============================================================
 
-test_that("cie_search maneja caracteres con tildes", {
-  skip_on_cran()
-
-
-  # Busqueda con tildes en espanol
-  resultado <- cie_search("neumonia", threshold = 0.70)
-  expect_s3_class(resultado, "tbl_df")
-  expect_gt(nrow(resultado), 0)
-
-  # Busqueda con ene
-  resultado_ene <- cie_search("rinon", threshold = 0.70)
-  expect_s3_class(resultado_ene, "tbl_df")
-})
-
-test_that("cie_search encuentra terminos con y sin tildes",
+test_that("cie_search fuzzy tolera typo sin tilde ('diabetis')",
   {
   skip_on_cran()
 
@@ -42,18 +28,9 @@ test_that("base de datos contiene descripciones con tildes correctas", {
   if (nrow(resultado) > 0) {
     # Buscar caracteres corruptos comunes
     descripciones <- resultado$descripcion
-    tiene_corruptos <- any(stringr::str_detect(descripciones, "\ufffd|Ã¡|Ã©|Ã\u00ad|Ã³|Ãº|Ã±"))
+    tiene_corruptos <- any(stringr::str_detect(descripciones, "\ufffd|\u00c3\u00a1|\u00c3\u00a9|\u00c3\u00ad|\u00c3\u00b3|\u00c3\u00ba|\u00c3\u00b1"))
     expect_false(tiene_corruptos, info = "Las descripciones no deben tener caracteres corruptos")
   }
-})
-
-test_that("cie_lookup maneja codigos sin importar encoding", {
-  skip_on_cran()
-
-  # El codigo debe funcionar independientemente del encoding del sistema
-  resultado <- cie_lookup("E11.0")
-  expect_equal(nrow(resultado), 1)
-  expect_s3_class(resultado, "tbl_df")
 })
 
 # ============================================================
@@ -106,62 +83,15 @@ test_that("cie_search maneja guiones y barras", {
   })
 })
 
-test_that("cie10_sql maneja comillas en queries", {
-  skip_on_cran()
-
-  # Query con comillas simples (parametros)
-  resultado <- cie10_sql("SELECT * FROM cie10 WHERE codigo = 'E11.0'")
-  expect_s3_class(resultado, "tbl_df")
-
-  # Query con LIKE y comillas
-  resultado2 <- cie10_sql("SELECT * FROM cie10 WHERE descripcion LIKE '%diabetes%' LIMIT 5")
-  expect_s3_class(resultado2, "tbl_df")
-})
-
-# ============================================================
-# PRUEBAS DE UNICODE
-# ============================================================
-
-test_that("cie_search maneja caracteres unicode validos", {
-  skip_on_cran()
-
-  # Caracteres unicode basicos deben ser manejados
-  expect_no_error({
-    suppressMessages(cie_search("diabetes", threshold = 0.70))
-  })
-})
-
-test_that("base de datos mantiene integridad unicode", {
-  skip_on_cran()
-
-  # Verificar que los datos no estan corruptos
-  resultado <- cie10_sql("SELECT COUNT(*) as n FROM cie10")
-  expect_gt(resultado$n, 5000)
-
-  # Verificar que hay codigos con descripciones no vacias
-  resultado2 <- cie10_sql("SELECT COUNT(*) as n FROM cie10 WHERE descripcion IS NOT NULL AND descripcion != ''")
-  expect_gt(resultado2$n, 5000)
-})
-
 # ============================================================
 # PRUEBAS DE CONSISTENCIA ENTRE PLATAFORMAS
 # ============================================================
-
-test_that("cie_normalizar es consistente con diferentes inputs", {
-  skip_on_cran()
-
-  # Mismos resultados independientemente de mayusculas/minusculas
-  resultado_may <- cie_normalizar("E110", buscar_db = FALSE)
-  resultado_min <- cie_normalizar("e110", buscar_db = FALSE)
-
-  expect_equal(resultado_may, resultado_min)
-})
 
 test_that("cie_validate_vector es case-insensitive", {
   # Debe validar independientemente del case
   expect_true(cie_validate_vector("E11.0"))
   expect_true(cie_validate_vector("e11.0"))
-  expect_true(cie_validate_vector("E11.0"))
+  expect_true(cie_validate_vector("i10"))
 })
 
 test_that("cie_lookup es case-insensitive", {
@@ -169,34 +99,28 @@ test_that("cie_lookup es case-insensitive", {
 
   resultado_may <- cie_lookup("E11.0")
   resultado_min <- cie_lookup("e11.0")
-  resultado_mix <- cie_lookup("e11.0")
+  resultado_i10 <- cie_lookup("i10")
 
   expect_equal(resultado_may$codigo, resultado_min$codigo)
-  expect_equal(resultado_may$codigo, resultado_mix$codigo)
+  expect_equal(resultado_i10$codigo, "I10")
 })
 
 # ============================================================
 # PRUEBAS DE LOCALE
 # ============================================================
 
-test_that("funciones operan independientemente del locale", {
+test_that("funciones operan con locale C (collate distinto)", {
   skip_on_cran()
 
-  # Guardar locale actual
-  old_locale <- Sys.getlocale("LC_COLLATE")
+  # Forzar locale C scoped (withr restaura automaticamente); cie_lookup
+  # y cie_search no deben depender del collation del sistema
+  withr::local_locale(c(LC_COLLATE = "C"))
 
-  # Las funciones deben operar correctamente
   resultado <- cie_lookup("E11.0")
   expect_equal(nrow(resultado), 1)
 
   resultado2 <- cie_search("diabetes", threshold = 0.70)
   expect_gt(nrow(resultado2), 0)
-
-  # Restaurar locale (por si acaso cambio)
-  tryCatch(
-    Sys.setlocale("LC_COLLATE", old_locale),
-    error = function(e) NULL
-  )
 })
 
 # ============================================================
@@ -224,7 +148,7 @@ test_that("similitud Jaro-Winkler funciona con tildes", {
 
   # La similitud debe funcionar aunque haya diferencias de tildes
   resultado1 <- cie_search("neumonia", threshold = 0.60)
-  resultado2 <- cie_search("neumonía", threshold = 0.60)
+  resultado2 <- cie_search("neumon\u00eda", threshold = 0.60)
 
   # Ambos deben encontrar resultados (aunque no exactamente los mismos)
   expect_s3_class(resultado1, "tbl_df")

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Rodolfo Tasso Suazo" />
+
+<meta name="date" content="2026-10-02" />
+
+<title>Installation and Configuration Guide</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Installation and Configuration Guide</h1>
+<h4 class="author">Rodolfo Tasso Suazo</h4>
+<h4 class="date">2026-10-02</h4>
+
+
+
+<p>This guide is written for people who work with health databases and
+may still be learning R: installing a package from GitHub with
+<code>pak</code> and setting up the WHO API key are not obvious steps
+for them, so they are explained here in detail. If you are already
+comfortable with R, you can skip this vignette:
+<code>pak::pak(&quot;ropensci/ciecl&quot;)</code> is all you need to get
+started.</p>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p>The simplest way to install <code>ciecl</code> is with the <a href="https://pak.r-lib.org/"><code>pak</code></a> package, which
+automatically resolves R and system dependencies.</p>
+<div id="from-cran-stable-version" class="section level3">
+<h3>From CRAN (stable version)</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;ciecl&quot;</span>)</span></code></pre></div>
+</div>
+<div id="from-github-development-version" class="section level3">
+<h3>From GitHub (development version)</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;pak&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;ropensci/ciecl&quot;</span>)</span></code></pre></div>
+<p>To also install all optional dependencies (comorbidities, GT tables,
+ICD-11 API):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;ropensci/ciecl&quot;</span>, <span class="at">dependencies =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+<div id="dependencies-by-feature" class="section level3">
+<h3>Dependencies by feature</h3>
+<p>The package core (ICD-10 code lookup and search) requires no optional
+packages. These are the suggested dependencies by task:</p>
+<table>
+<colgroup>
+<col width="28%" />
+<col width="28%" />
+<col width="43%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Package</th>
+<th>Installation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Charlson/Elixhauser comorbidity indices with
+<code>cie_comorbid()</code></td>
+<td><code>comorbidity</code></td>
+<td><code>install.packages(&quot;comorbidity&quot;)</code></td>
+</tr>
+<tr class="even">
+<td>Formatted HTML tables with <code>cie_table()</code></td>
+<td><code>gt</code></td>
+<td><code>install.packages(&quot;gt&quot;)</code></td>
+</tr>
+<tr class="odd">
+<td>Read MINSAL Excel files</td>
+<td><code>readxl</code></td>
+<td><code>install.packages(&quot;readxl&quot;)</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="system-requirements" class="section level2">
+<h2>System requirements</h2>
+<div id="windows" class="section level3">
+<h3>Windows</h3>
+<p>No additional dependencies: the installation works out of the
+box.</p>
+</div>
+<div id="macos" class="section level3">
+<h3>macOS</h3>
+<p>Install the Xcode Command Line Tools if you compile from source:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">xcode-select</span> <span class="at">--install</span></span></code></pre></div>
+</div>
+<div id="linux-ubuntudebian" class="section level3">
+<h3>Linux (Ubuntu/Debian)</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  r-base-dev <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  libcurl4-openssl-dev <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  libssl-dev <span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  libxml2-dev</span></code></pre></div>
+</div>
+<div id="linux-fedorarhelcentos" class="section level3">
+<h3>Linux (Fedora/RHEL/CentOS)</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  R-devel <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  libcurl-devel <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  openssl-devel <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  libxml2-devel</span></code></pre></div>
+</div>
+</div>
+<div id="icd-11-api-configuration-optional" class="section level2">
+<h2>ICD-11 API Configuration (optional)</h2>
+<p>The CIE-10 functions (the core of the package) work without
+credentials. You only need free WHO credentials to use
+<code>cie11_search()</code>, which queries the WHO ICD-11
+classification.</p>
+<blockquote>
+<p><strong>Security:</strong> never write the literal key in your
+scripts (not even via <code>api_key = &quot;...&quot;</code>): sharing the code
+would expose your credentials. The recommended way is the
+<code>ICD_API_KEY</code> environment variable, set with
+<code>usethis::edit_r_environ()</code> (Option B) or via
+<code>keyring</code> (Option A). The <code>api_key</code> argument of
+<code>cie11_search()</code> exists only for exceptional cases
+(e.g. multiple keys or environments where env vars cannot be set).</p>
+</blockquote>
+<div id="step-1-get-credentials" class="section level3">
+<h3>Step 1: Get credentials</h3>
+<ol style="list-style-type: decimal">
+<li>Visit <a href="https://icd.who.int/icdapi" class="uri">https://icd.who.int/icdapi</a></li>
+<li>Register with your email (free)</li>
+<li>You will receive a <code>Client ID</code> and a
+<code>Client Secret</code></li>
+</ol>
+</div>
+<div id="step-2-store-the-credentials" class="section level3">
+<h3>Step 2: Store the credentials</h3>
+<p><strong>Option A: <code>keyring</code> (recommended)</strong></p>
+<p>The <a href="https://keyring.r-lib.org/"><code>keyring</code></a>
+package stores secrets in the OS native keychain (macOS Keychain,
+Windows Credential Store, Linux Secret Service), avoiding plain-text
+secrets in <code>.Renviron</code>.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Once: store &quot;client_id:client_secret&quot; in the keychain</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>keyring<span class="sc">::</span><span class="fu">key_set</span>(<span class="st">&quot;ciecl_icd11&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># In each session where you use the API</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">ICD_API_KEY =</span> keyring<span class="sc">::</span><span class="fu">key_get</span>(<span class="st">&quot;ciecl_icd11&quot;</span>))</span></code></pre></div>
+<p><strong>Option B: <code>.Renviron</code> file</strong></p>
+<p>Create or edit <code>~/.Renviron</code> (for example with
+<code>usethis::edit_r_environ()</code> if you have <code>usethis</code>
+installed) and add:</p>
+<pre><code>ICD_API_KEY=your_client_id:your_client_secret</code></pre>
+<p>Restart R for it to take effect. Do not commit <code>.Renviron</code>
+to Git.</p>
+<p><strong>Option C: Current session only (temporary)</strong></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">ICD_API_KEY =</span> <span class="st">&quot;your_client_id:your_client_secret&quot;</span>)</span></code></pre></div>
+</div>
+<div id="step-3-verify-the-configuration" class="section level3">
+<h3>Step 3: Verify the configuration</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Check that the environment variable is set</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">Sys.getenv</span>(<span class="st">&quot;ICD_API_KEY&quot;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># Test an ICD-11 search</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">library</span>(ciecl)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="fu">cie11_search</span>(<span class="st">&quot;diabetes&quot;</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="sqlite-cache" class="section level2">
+<h2>SQLite cache</h2>
+<p>The package uses a local SQLite database for efficient searches. It
+is created automatically on first use, in the user data directory:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Show the cache location</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>tools<span class="sc">::</span><span class="fu">R_user_dir</span>(<span class="st">&quot;ciecl&quot;</span>, <span class="st">&quot;data&quot;</span>)</span></code></pre></div>
+<p>You can change that location by setting the
+<code>CIECL_CACHE_DIR</code> environment variable before loading the
+package. To force a rebuild of the database (for example, after updating
+the package):</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">library</span>(ciecl)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">cie10_clear_cache</span>()</span></code></pre></div>
+</div>
+<div id="verify-the-installation" class="section level2">
+<h2>Verify the installation</h2>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">library</span>(ciecl)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co"># Check that the package loads correctly</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">packageVersion</span>(<span class="st">&quot;ciecl&quot;</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co"># Verify catalogue access</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="fu">nrow</span>(cie10_cl)</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co"># Test a basic lookup</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11.0&quot;</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co"># Test fuzzy search</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;diabetes&quot;</span>)</span></code></pre></div>
+</div>
+<div id="troubleshooting" class="section level2">
+<h2>Troubleshooting</h2>
+<div id="error-package-ciecl-is-not-available" class="section level3">
+<h3>Error: “package ‘ciecl’ is not available”</h3>
+<p>Check that a CRAN repository is configured in your R session, then
+install as usual:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;ciecl&quot;</span>)</span></code></pre></div>
+</div>
+<div id="compilation-error-on-linux" class="section level3">
+<h3>Compilation error on Linux</h3>
+<p>Install the system dependencies listed in the “System requirements”
+section and try the installation again.</p>
+</div>
+<div id="the-icd-11-api-does-not-respond" class="section level3">
+<h3>The ICD-11 API does not respond</h3>
+<ol style="list-style-type: decimal">
+<li>Check that the credential is set:
+<code>Sys.getenv(&quot;ICD_API_KEY&quot;)</code> must not return an empty
+string.</li>
+<li>Check your internet connection.</li>
+<li>Check the WHO service status at <a href="https://icd.who.int/icdapi" class="uri">https://icd.who.int/icdapi</a>: if it is down, the ICD-10
+functions keep working because they do not depend on the API.</li>
+</ol>
+</div>
+<div id="corrupt-cache" class="section level3">
+<h3>Corrupt cache</h3>
+<p>Clear the cache and restart R:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>ciecl<span class="sc">::</span><span class="fu">cie10_clear_cache</span>()</span></code></pre></div>
+</div>
+</div>
+<div id="support" class="section level2">
+<h2>Support</h2>
+<ul>
+<li>Report issues: <a href="https://github.com/ropensci/ciecl/issues" class="uri">https://github.com/ropensci/ciecl/issues</a></li>
+<li>Documentation: <a href="https://docs.ropensci.org/ciecl/" class="uri">https://docs.ropensci.org/ciecl/</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

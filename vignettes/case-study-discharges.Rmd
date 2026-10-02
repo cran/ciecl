@@ -1,0 +1,206 @@
+---
+title: "Getting started with ciecl: a hospital discharge report"
+author: "Rodolfo Tasso Suazo"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with ciecl: a hospital discharge report}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(ciecl)
+library(dplyr)
+```
+
+## Who is this guide for?
+
+Imagine you work in the statistics unit of a hospital and every month you are the person responsible for preparing the **diabetes discharge report** for the service directorate. You receive the hospital discharge database, and your goal is to answer concrete questions: how many discharges had diabetes as the primary diagnosis?, of what type?, how complex were those patients?
+
+The problem is that the database arrives with ICD-10 codes in inconsistent formats and without descriptions: to interpret them you would have to manually consult the official catalog in PDF or Excel. `ciecl` removes that step: it bundles the official Chilean ICD-10 catalog (MINSAL/DEIS v2018) inside R and lets you normalize, describe, search and analyze the codes directly on your database.
+
+This guide walks through that complete workflow, from basic to advanced. You only need basic R knowledge; if you also use `dplyr`, the examples fit directly into your pipelines.
+
+## The data: DEIS hospital discharges
+
+The **Hospital Discharge** databases are published by the Department of Health Statistics and Information (DEIS) of the Ministry of Health of Chile. Each row is a hospital discharge and the `DIAG1` column contains the primary diagnosis coded in ICD-10.
+
+In practice, these files arrive with two very common format variations:
+
+1.  **Compact formats**: codes without a decimal point (e.g., `J189` instead of `J18.9`).
+2.  **Filler suffixes**: an `X` letter to complete the field length in 3-character categories (e.g., `I10X` for essential hypertension).
+
+Let's generate a synthetic dataset that replicates the structure and typical anomalies of DEIS files:
+
+```{r datos}
+set.seed(42)
+
+# Simulation of 200 records with typical DEIS Chile formats
+discharges <- data.frame(
+  DISCHARGE_ID = 1:200,
+  PATIENT_ID   = sample(1:50, 200, replace = TRUE),
+  YEAR         = sample(2018:2022, 200, replace = TRUE),
+  DIAG1        = sample(
+    c(
+      "J189", "O800", "Z380", "K359", "N390",
+      "I10X", "J449", "E119", "O829", "J069",
+      "K922", "N185", "I509", "C509", "A099",
+      "N40X", "K800", "I259", "J180", "E149"
+    ),
+    size    = 200,
+    replace = TRUE
+  ),
+  stringsAsFactors = FALSE
+)
+
+head(discharges)
+```
+
+## Step 1: Normalize codes with `cie_norm()`
+
+Before any analysis, `DIAG1` must be standardized. `cie_norm()` applies the official MINSAL coding rules in a vectorized way: it removes the filler `X`, inserts the decimal point in the correct position and cleans whitespace, hyphens and special symbols (such as † or *).
+
+```{r normalizacion}
+# Cleaning and standardization of diagnoses in the workflow
+discharges <- discharges |>
+  mutate(
+    DIAG1_NORM = cie_norm(codes = DIAG1)
+  )
+
+# Comparison between original and normalized formats
+discharges |>
+  select(DIAG1, DIAG1_NORM) |>
+  distinct() |>
+  head(5)
+```
+
+With this, `I10X` became `I10` and `J189` became `J18.9`: the codes are now comparable with the official catalog.
+
+## Step 2: Add the official descriptions with `cie_describe()`
+
+For the report you need the clinical descriptions, not just the codes. `cie_describe()` returns a character vector with one description per code, so you can add it as another column of your table with `mutate()`, with no intermediate steps:
+
+```{r describe}
+# Direct integration of descriptions into the main dataframe
+discharges_full <- discharges |>
+  mutate(
+    description = cie_describe(DIAG1_NORM)
+  )
+
+head(discharges_full |> select(DISCHARGE_ID, DIAG1, description))
+```
+
+If, in addition to the description, you need the full metadata (chapter, group, inclusion/exclusion notes), use `cie_lookup()`, which returns a structured `tibble` ready for a `left_join()`:
+
+```{r lookup}
+# Extracting full metadata via lookup + join
+metadata <- cie_lookup(
+  code = unique(discharges$DIAG1_NORM),
+  full_description = TRUE
+)
+
+discharges_metadata <- discharges |>
+  left_join(metadata, by = c("DIAG1_NORM" = "codigo"))
+```
+
+## Step 3: Find codes when you don't know the code with `cie_search()`
+
+Back to your diabetes report: you suspect there are diabetes discharges in the database, but which exact codes does the catalog cover? Instead of flipping through the PDF, you search by text. `cie_search()` uses Jaro-Winkler similarity, so it tolerates typos (here we search for "diabetis" on purpose):
+
+```{r busqueda}
+# Tolerant search: "diabetis" instead of "diabetes"
+# (by default the 50 most similar results are shown;
+#  we raise the limit because the catalog has many diabetes codes)
+search_results <- cie_search(text = "diabetis", threshold = 0.7, max_results = 100)
+
+search_results
+```
+
+Each result includes a similarity `score` to assess the reliability of the match. But the table above lists every diabetes code in the catalog, and not all of them necessarily appear in your data. To find out which ones do, cross the search results with the codes that actually show up in your dataset:
+
+```{r cruce}
+# Which diabetes codes are actually in my data?
+diabetes_codes <- intersect(
+  search_results$codigo,
+  unique(discharges$DIAG1_NORM)
+)
+
+diabetes_codes
+```
+
+As the result shows, of all the diabetes codes in the catalog only two are present in the `DIAG1` column of your data: `E11.9` and `E14.9`. The cross identifies which codes your data actually contains, without reviewing the full table by hand. With that list you can now filter the discharges and close the report:
+
+```{r reporte-diabetes}
+# Final report: diabetes discharges, summarized by type
+discharges_full |>
+  filter(DIAG1_NORM %in% diabetes_codes) |>
+  count(description, sort = TRUE)
+```
+
+With this, your monthly diabetes discharge report is ready: you know how many there were and of what type, with the official catalog descriptions.
+
+## When a search returns no results
+
+It is normal for some queries to find nothing, and it is worth knowing how the package behaves in those cases: **the functions never fail with an error when there are no results; they return an empty `tibble` with the correct column structure** and an informative message.
+
+If you search for a code that does not exist in the catalog:
+
+```{r sin-resultados-lookup}
+cie_lookup("XYZ123")
+```
+
+If the `cie_search()` threshold is too strict for the term entered:
+
+```{r sin-resultados-search}
+cie_search("zzzqwerty", threshold = 0.95)
+```
+
+In both cases the workflow is not interrupted: you can check `nrow(result) == 0` and react (lower the `threshold`, check the spelling or validate the code). To quickly check which codes of a vector are valid according to the catalog, use `cie_validate_vector()`:
+
+```{r validacion}
+cie_validate_vector(c("E11.0", "XYZ123", "I10X"))
+```
+
+## Step 4: Stratify risk with `cie_comorbid()`
+
+The last level of the report is patient complexity. `cie_comorbid()` maps the diagnoses to the Charlson or Elixhauser indices and returns a comorbidity matrix per patient, ready for statistical models:
+
+```{r comorbilidad, eval=rlang::is_installed("comorbidity")}
+# Requires the 'comorbidity' package to be installed
+# Calculation of the Charlson Index consolidated by patient
+comorbidities <- cie_comorbid(
+  data = discharges,
+  id   = "PATIENT_ID",
+  code = "DIAG1",
+  map  = "charlson"
+)
+
+head(comorbidities, 10)
+```
+
+## Workflow summary
+
+This guide covered the complete cycle from the raw database to the analytical input:
+
+1.  **Standardization**: format correction with `cie_norm()`.
+2.  **Contextualization**: official descriptions with `cie_describe()` and metadata with `cie_lookup()`.
+3.  **Exploration**: text-based code search with `cie_search()`, error-tolerant and with predictable behavior when there are no results.
+4.  **Aggregation**: comorbidity indices with `cie_comorbid()`.
+
+Not sure which function to use in another scenario? Run `cie_guide()` to see a comparison table with the recommended function and an example per case.
+
+## Next steps
+
+- [Installation and Configuration Guide](installation.html): installation and credentials for the WHO ICD-11 API.
+- [Introduction to ciecl: Chilean ICD-10 in R](ciecl-en.html): function-by-function tour, including direct SQL queries with `cie10_sql()` and formatted tables with `cie_table()`.
+- [Language support and internationalization](languages.html): searching in Spanish and English, and accent handling.
+
+---
+
+**Data source:**
+This tool uses the official ICD-10 catalog for Chile, managed by the DEIS of the Ministry of Health. More details at [deis.minsal.cl](https://deis.minsal.cl).

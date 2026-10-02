@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Rodolfo Tasso Suazo" />
+
+<meta name="date" content="2026-10-02" />
+
+<title>Language support and internationalization</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Language support and
+internationalization</h1>
+<h4 class="author">Rodolfo Tasso Suazo</h4>
+<h4 class="date">2026-10-02</h4>
+
+
+
+<div id="supported-languages" class="section level2">
+<h2>Supported languages</h2>
+<p>The <code>ciecl</code> package works primarily in Chilean Spanish,
+but offers multilingual search when the data source allows it. The table
+summarizes the behavior by function.</p>
+<table>
+<colgroup>
+<col width="17%" />
+<col width="20%" />
+<col width="18%" />
+<col width="42%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Function</th>
+<th>Dataset language</th>
+<th>Search language</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cie_lookup()</code></td>
+<td>Spanish (Chile)</td>
+<td>—</td>
+<td>Search by code; language not applicable</td>
+</tr>
+<tr class="even">
+<td><code>cie_search()</code></td>
+<td>Spanish (Chile)</td>
+<td>Spanish</td>
+<td>Descriptions in Chilean Spanish</td>
+</tr>
+<tr class="odd">
+<td><code>cie11_search()</code></td>
+<td>Spanish / English</td>
+<td>Spanish / English</td>
+<td>Configurable via the <code>lang</code> parameter</td>
+</tr>
+<tr class="even">
+<td><code>cie10_sql()</code></td>
+<td>Spanish (Chile)</td>
+<td>SQL</td>
+<td><code>descripcion</code> column in Spanish</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="the-chilean-icd-10-dataset" class="section level2">
+<h2>The Chilean ICD-10 dataset</h2>
+<p>The <code>cie10_cl</code> dataset contains the codes currently in
+force with descriptions in Chilean Spanish according to the official
+MINSAL/DEIS catalog v2018. See <code>?cie10_cl</code> for column
+details.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(ciecl)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">head</span>(cie10_cl[, <span class="fu">c</span>(<span class="st">&quot;codigo&quot;</span>, <span class="st">&quot;descripcion&quot;</span>, <span class="st">&quot;capitulo&quot;</span>)])</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 3</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                                          capitulo</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;                                                &lt;chr&gt;   </span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt; 1 A00    Cólera                                               A00     </span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&gt; 2 A00.0  Cólera debido a Vibrio cholerae O1, biotipo cholerae A00     </span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&gt; 3 A00.1  Cólera debido a Vibrio cholerae O1, biotipo El Tor   A00     </span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co">#&gt; 4 A00.9  Cólera, no especificado                              A00     </span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co">#&gt; 5 A01    Fiebres tifoidea y paratifoidea                      A01     </span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="co">#&gt; 6 A01.0  Fiebre tifoidea                                      A01</span></span></code></pre></div>
+<p>The <code>descripcion</code> column preserves the accents and ñ’s of
+the original catalog. This matters because many cleaning routines strip
+accents; in <code>ciecl</code> normalization happens only at the
+<em>search</em> stage, not in the stored data.</p>
+<div id="features-of-chilean-spanish" class="section level3">
+<h3>Features of Chilean Spanish</h3>
+<ul>
+<li><strong>Accents preserved in the dataset</strong>: “Neumonía”,
+“Riñón”, “Corazón”.</li>
+<li><strong>Local terminology</strong>: uses medical terms common in
+Chile.</li>
+<li><strong>No anglicisms</strong>: official MINSAL translations.</li>
+</ul>
+</div>
+</div>
+<div id="accent--and-ñ-tolerant-search" class="section level2">
+<h2>Accent- and ñ-tolerant search</h2>
+<p><code>cie_search()</code> internally normalizes the query so users
+can type with or without accents. This is especially useful in mixed
+clinical data, where the same term appears with and without an
+accent.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># With or without accent: same result</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;neumonia&quot;</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 50 × 4</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt;  1 B01.2  Neumonía debida a varicela (J17.1*)                        1 B01 VARI…</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt;  2 B05.2  Sarampión complicado con neumonía (J17.1*)                 1 B05 SARA…</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt;  3 B20.6  Enfermedad por VIH, resultante en neumonía por Pneumo…     1 B20 ENFE…</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt;  4 J10.0  Influenza con neumonía, debida a otro virus de la inf…     1 J10 INFL…</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt;  5 J11.0  Influenza con neumonía, virus no identificado              1 J11 INFL…</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt;  6 J12    Neumonía viral, no clasificada en otra parte               1 J12 NEUM…</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt;  7 J12.0  Neumonía debida a adenovirus                               1 J12 NEUM…</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt;  8 J12.1  Neumonía debida a virus sincitial respiratorio             1 J12 NEUM…</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt;  9 J12.2  Neumonía debida a virus parainfluenza                      1 J12 NEUM…</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt; 10 J12.3  Neumonía por metapneumovirus humano                        1 J12 NEUM…</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt; # ℹ 40 more rows</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;neumonía&quot;</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt; # A tibble: 50 × 4</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt;  1 B01.2  Neumonía debida a varicela (J17.1*)                        1 B01 VARI…</span></span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co">#&gt;  2 B05.2  Sarampión complicado con neumonía (J17.1*)                 1 B05 SARA…</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co">#&gt;  3 B20.6  Enfermedad por VIH, resultante en neumonía por Pneumo…     1 B20 ENFE…</span></span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co">#&gt;  4 J10.0  Influenza con neumonía, debida a otro virus de la inf…     1 J10 INFL…</span></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co">#&gt;  5 J11.0  Influenza con neumonía, virus no identificado              1 J11 INFL…</span></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co">#&gt;  6 J12    Neumonía viral, no clasificada en otra parte               1 J12 NEUM…</span></span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="co">#&gt;  7 J12.0  Neumonía debida a adenovirus                               1 J12 NEUM…</span></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co">#&gt;  8 J12.1  Neumonía debida a virus sincitial respiratorio             1 J12 NEUM…</span></span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="co">#&gt;  9 J12.2  Neumonía debida a virus parainfluenza                      1 J12 NEUM…</span></span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a><span class="co">#&gt; 10 J12.3  Neumonía por metapneumovirus humano                        1 J12 NEUM…</span></span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a><span class="co">#&gt; # ℹ 40 more rows</span></span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;NEUMONIA&quot;</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a><span class="co">#&gt; # A tibble: 50 × 4</span></span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a><span class="co">#&gt;  1 B01.2  Neumonía debida a varicela (J17.1*)                        1 B01 VARI…</span></span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a><span class="co">#&gt;  2 B05.2  Sarampión complicado con neumonía (J17.1*)                 1 B05 SARA…</span></span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a><span class="co">#&gt;  3 B20.6  Enfermedad por VIH, resultante en neumonía por Pneumo…     1 B20 ENFE…</span></span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a><span class="co">#&gt;  4 J10.0  Influenza con neumonía, debida a otro virus de la inf…     1 J10 INFL…</span></span>
+<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a><span class="co">#&gt;  5 J11.0  Influenza con neumonía, virus no identificado              1 J11 INFL…</span></span>
+<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a><span class="co">#&gt;  6 J12    Neumonía viral, no clasificada en otra parte               1 J12 NEUM…</span></span>
+<span id="cb2-42"><a href="#cb2-42" tabindex="-1"></a><span class="co">#&gt;  7 J12.0  Neumonía debida a adenovirus                               1 J12 NEUM…</span></span>
+<span id="cb2-43"><a href="#cb2-43" tabindex="-1"></a><span class="co">#&gt;  8 J12.1  Neumonía debida a virus sincitial respiratorio             1 J12 NEUM…</span></span>
+<span id="cb2-44"><a href="#cb2-44" tabindex="-1"></a><span class="co">#&gt;  9 J12.2  Neumonía debida a virus parainfluenza                      1 J12 NEUM…</span></span>
+<span id="cb2-45"><a href="#cb2-45" tabindex="-1"></a><span class="co">#&gt; 10 J12.3  Neumonía por metapneumovirus humano                        1 J12 NEUM…</span></span>
+<span id="cb2-46"><a href="#cb2-46" tabindex="-1"></a><span class="co">#&gt; # ℹ 40 more rows</span></span></code></pre></div>
+<p>The same logic applies to the ñ: searching <code>&quot;rinon&quot;</code> finds
+“Riñón” in the catalog.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;rinon&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 49 × 4</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;    codigo  descripcion                                           score categoria</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;   &lt;chr&gt;                                                 &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;  1 C64     Tumor maligno del riñón, excepto de la pelvis renal       1 C64 TUMO…</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt;  2 C79.0   Tumor maligno secundario del riñón y de la pelvis re…     1 C79 TUMO…</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt;  3 D30.0   Tumor benigno del riñón                                   1 D30 TUMO…</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt;  4 D41.0   Tumor de comportamiento incierto o desconocido del r…     1 D41 TUMO…</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt;  5 M8964/3 Sarcoma de células claras del riñón (C64)                 1 M893-M89…</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt;  6 M8964/6 Sarcoma de células claras del riñón (C64), metastási…     1 M893-M89…</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt;  7 M9044/3 Sarcoma de células claras (excepto del riñón M8964/3)     1 M904-M90…</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt;  8 M9044/6 Sarcoma de células claras (excepto del riñón M8964/3…     1 M904-M90…</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt;  9 N13.2   Hidronefrosis con obstrucción por cálculos del riñón…     1 N13 UROP…</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; 10 N20     Cálculo del riñón y del uréter                            1 N20 CÁLC…</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; # ℹ 39 more rows</span></span></code></pre></div>
+</div>
+<div id="chilean-medical-abbreviations" class="section level2">
+<h2>Chilean medical abbreviations</h2>
+<p>The package includes a dictionary of <strong>medical
+abbreviations</strong> in clinical use in Chile. This allows an analyst
+to type <code>IAM</code> instead of the full term and <code>ciecl</code>
+resolves the abbreviation to the official catalog term.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># List all available abbreviations</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">cie_short</span>())</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 3</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt;   sigla   termino_busqueda         categoria     </span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;   &lt;chr&gt;                    &lt;chr&gt;         </span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; 1 iam     infarto agudo miocardio  cardiovascular</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; 2 iamcest infarto agudo miocardio  cardiovascular</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; 3 iamsest infarto agudo miocardio  cardiovascular</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; 4 sca     sindrome coronario agudo cardiovascular</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; 5 hta     hipertension arterial    cardiovascular</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; 6 aha     hipertension arterial    cardiovascular</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co"># Filter by category</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="fu">cie_short</span>(<span class="at">category =</span> <span class="st">&quot;cardiovascular&quot;</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; # A tibble: 15 × 3</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt;    sigla   termino_busqueda              categoria     </span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;   &lt;chr&gt;                         &lt;chr&gt;         </span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt;  1 iam     infarto agudo miocardio       cardiovascular</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt;  2 iamcest infarto agudo miocardio       cardiovascular</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt;  3 iamsest infarto agudo miocardio       cardiovascular</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt;  4 sca     sindrome coronario agudo      cardiovascular</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt;  5 hta     hipertension arterial         cardiovascular</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt;  6 aha     hipertension arterial         cardiovascular</span></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co">#&gt;  7 icc     insuficiencia cardiaca        cardiovascular</span></span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="co">#&gt;  8 ic      insuficiencia cardiaca        cardiovascular</span></span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt;  9 fa      fibrilacion auricular         cardiovascular</span></span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; 10 tep     embolia pulmonar              cardiovascular</span></span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; 11 tvp     trombosis venosa profunda     cardiovascular</span></span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a><span class="co">#&gt; 12 eap     edema agudo pulmon            cardiovascular</span></span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a><span class="co">#&gt; 13 acv     accidente cerebrovascular     cardiovascular</span></span>
+<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a><span class="co">#&gt; 14 ave     accidente vascular encefalico cardiovascular</span></span>
+<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a><span class="co">#&gt; 15 ait     isquemico transitorio         cardiovascular</span></span>
+<span id="cb4-33"><a href="#cb4-33" tabindex="-1"></a></span>
+<span id="cb4-34"><a href="#cb4-34" tabindex="-1"></a><span class="co"># Use the abbreviation directly in a search</span></span>
+<span id="cb4-35"><a href="#cb4-35" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;IAM&quot;</span>)   <span class="co"># Acute Myocardial Infarction</span></span>
+<span id="cb4-36"><a href="#cb4-36" tabindex="-1"></a><span class="co">#&gt; ℹ Sigla detectada: &quot;IAM&quot; -&gt; &quot;infarto agudo miocardio&quot;</span></span>
+<span id="cb4-37"><a href="#cb4-37" tabindex="-1"></a><span class="co">#&gt; # A tibble: 50 × 4</span></span>
+<span id="cb4-38"><a href="#cb4-38" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
+<span id="cb4-39"><a href="#cb4-39" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb4-40"><a href="#cb4-40" tabindex="-1"></a><span class="co">#&gt;  1 I21    Infarto agudo del miocardio                                1 I21 INFA…</span></span>
+<span id="cb4-41"><a href="#cb4-41" tabindex="-1"></a><span class="co">#&gt;  2 I21.0  Infarto transmural agudo del miocardio de la pared an…     1 I21 INFA…</span></span>
+<span id="cb4-42"><a href="#cb4-42" tabindex="-1"></a><span class="co">#&gt;  3 I21.1  Infarto transmural agudo del miocardio de la pared in…     1 I21 INFA…</span></span>
+<span id="cb4-43"><a href="#cb4-43" tabindex="-1"></a><span class="co">#&gt;  4 I21.2  Infarto agudo transmural del miocardio de otros sitios     1 I21 INFA…</span></span>
+<span id="cb4-44"><a href="#cb4-44" tabindex="-1"></a><span class="co">#&gt;  5 I21.3  Infarto transmural agudo del miocardio, de sitio no e…     1 I21 INFA…</span></span>
+<span id="cb4-45"><a href="#cb4-45" tabindex="-1"></a><span class="co">#&gt;  6 I21.4  Infarto subendocárdico agudo del miocardio                 1 I21 INFA…</span></span>
+<span id="cb4-46"><a href="#cb4-46" tabindex="-1"></a><span class="co">#&gt;  7 I21.9  Infarto agudo del miocardio, sin otra especificación       1 I21 INFA…</span></span>
+<span id="cb4-47"><a href="#cb4-47" tabindex="-1"></a><span class="co">#&gt;  8 I23    Ciertas complicaciones presentes posteriores al infar…     1 I23 CIER…</span></span>
+<span id="cb4-48"><a href="#cb4-48" tabindex="-1"></a><span class="co">#&gt;  9 I23.0  Hemopericardio como complicación presente posterior a…     1 I23 CIER…</span></span>
+<span id="cb4-49"><a href="#cb4-49" tabindex="-1"></a><span class="co">#&gt; 10 I23.3  Ruptura de la pared cardíaca sin hemopericardio como …     1 I23 CIER…</span></span>
+<span id="cb4-50"><a href="#cb4-50" tabindex="-1"></a><span class="co">#&gt; # ℹ 40 more rows</span></span>
+<span id="cb4-51"><a href="#cb4-51" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;EPOC&quot;</span>)  <span class="co"># Chronic Obstructive Pulmonary Disease</span></span>
+<span id="cb4-52"><a href="#cb4-52" tabindex="-1"></a><span class="co">#&gt; ℹ Sigla detectada: &quot;EPOC&quot; -&gt; &quot;enfermedad pulmonar obstructiva cronica&quot;</span></span>
+<span id="cb4-53"><a href="#cb4-53" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 4</span></span>
+<span id="cb4-54"><a href="#cb4-54" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                                             score categoria</span></span>
+<span id="cb4-55"><a href="#cb4-55" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;                                                   &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb4-56"><a href="#cb4-56" tabindex="-1"></a><span class="co">#&gt; 1 J44.0  Enfermedad pulmonar obstructiva crónica con infección …     1 J44 OTRA…</span></span>
+<span id="cb4-57"><a href="#cb4-57" tabindex="-1"></a><span class="co">#&gt; 2 J44.1  Enfermedad pulmonar obstructiva crónica con exacerbaci…     1 J44 OTRA…</span></span>
+<span id="cb4-58"><a href="#cb4-58" tabindex="-1"></a><span class="co">#&gt; 3 J44.9  Enfermedad pulmonar obstructiva crónica, no especifica…     1 J44 OTRA…</span></span>
+<span id="cb4-59"><a href="#cb4-59" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;DM2&quot;</span>)   <span class="co"># Type 2 Diabetes Mellitus</span></span>
+<span id="cb4-60"><a href="#cb4-60" tabindex="-1"></a><span class="co">#&gt; ℹ Sigla detectada: &quot;DM2&quot; -&gt; &quot;diabetes mellitus tipo 2&quot;</span></span>
+<span id="cb4-61"><a href="#cb4-61" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 4</span></span>
+<span id="cb4-62"><a href="#cb4-62" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
+<span id="cb4-63"><a href="#cb4-63" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb4-64"><a href="#cb4-64" tabindex="-1"></a><span class="co">#&gt;  1 E11.0  Diabetes mellitus tipo 2 con coma                          1 E11 DIAB…</span></span>
+<span id="cb4-65"><a href="#cb4-65" tabindex="-1"></a><span class="co">#&gt;  2 E11.1  Diabetes mellitus tipo 2 con cetoacidosis                  1 E11 DIAB…</span></span>
+<span id="cb4-66"><a href="#cb4-66" tabindex="-1"></a><span class="co">#&gt;  3 E11.2  Diabetes mellitus tipo 2 con complicaciones renales        1 E11 DIAB…</span></span>
+<span id="cb4-67"><a href="#cb4-67" tabindex="-1"></a><span class="co">#&gt;  4 E11.3  Diabetes mellitus tipo 2 con complicaciones oftálmicas     1 E11 DIAB…</span></span>
+<span id="cb4-68"><a href="#cb4-68" tabindex="-1"></a><span class="co">#&gt;  5 E11.4  Diabetes mellitus tipo 2 con complicaciones neurológi…     1 E11 DIAB…</span></span>
+<span id="cb4-69"><a href="#cb4-69" tabindex="-1"></a><span class="co">#&gt;  6 E11.5  Diabetes mellitus tipo 2 con complicaciones  circulat…     1 E11 DIAB…</span></span>
+<span id="cb4-70"><a href="#cb4-70" tabindex="-1"></a><span class="co">#&gt;  7 E11.6  Diabetes mellitus tipo 2 con otras complicaciones  es…     1 E11 DIAB…</span></span>
+<span id="cb4-71"><a href="#cb4-71" tabindex="-1"></a><span class="co">#&gt;  8 E11.7  Diabetes mellitus tipo 2 con complicaciones múltiples      1 E11 DIAB…</span></span>
+<span id="cb4-72"><a href="#cb4-72" tabindex="-1"></a><span class="co">#&gt;  9 E11.8  Diabetes mellitus tipo 2 con complicaciones no especi…     1 E11 DIAB…</span></span>
+<span id="cb4-73"><a href="#cb4-73" tabindex="-1"></a><span class="co">#&gt; 10 E11.9  Diabetes mellitus tipo 2 sin complicaciones                1 E11 DIAB…</span></span>
+<span id="cb4-74"><a href="#cb4-74" tabindex="-1"></a><span class="co">#&gt; 11 O24.1  Diabetes mellitus tipo 2 preexistente                      1 O24 DIAB…</span></span></code></pre></div>
+<p>The following table summarizes the available categories and their
+approximate size. Numbers may vary between package versions.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Category</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Cardiovascular</td>
+<td>IAM, HTA, ACV, FA, ICC</td>
+</tr>
+<tr class="even">
+<td>Respiratory</td>
+<td>TBC, EPOC, NAC, SDRA</td>
+</tr>
+<tr class="odd">
+<td>Metabolic</td>
+<td>DM, DM1, DM2, ERC, IRC</td>
+</tr>
+<tr class="even">
+<td>Gastrointestinal</td>
+<td>HDA, HDB, RGE, DHC</td>
+</tr>
+<tr class="odd">
+<td>Infectious</td>
+<td>VIH, ITU, ITS, sepsis</td>
+</tr>
+<tr class="even">
+<td>Oncological</td>
+<td>CA, LMA, LMC, LLA, LLC</td>
+</tr>
+<tr class="odd">
+<td>Neurological</td>
+<td>TEC, EPI, EM, ELA</td>
+</tr>
+<tr class="even">
+<td>Psychiatric</td>
+<td>TDAH, TOC, TAG, TEPT</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="multilingual-icd-11-api" class="section level2">
+<h2>Multilingual ICD-11 API</h2>
+<p><code>cie11_search()</code> queries the official WHO API and allows
+specifying the language, since the WHO server provides official
+translations. <code>ciecl</code> exposes the parameter
+<code>lang = &quot;es&quot;</code> (default) or <code>lang = &quot;en&quot;</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Search in Spanish (default)</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co"># Requires a WHO API Key</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">cie11_search</span>(<span class="st">&quot;diabetes mellitus&quot;</span>, <span class="at">lang =</span> <span class="st">&quot;es&quot;</span>)</span></code></pre></div>
+<blockquote>
+<p>Note: this section requires WHO API credentials. See the vignette <a href="installation.html">Installation and Configuration Guide</a> to
+learn how to store them securely using <code>keyring</code>.</p>
+</blockquote>
+</div>
+<div id="encoding-and-special-characters" class="section level2">
+<h2>Encoding and special characters</h2>
+<p>The package is encoded in <strong>UTF-8</strong> and the dataset
+preserves all Spanish characters (accents, ñ, diaeresis) and the
+dual-coding symbols (dagger †, asterisk *) that appear in the MINSAL
+catalog. When searching, <code>cie_search()</code> and
+<code>cie_norm()</code> know how to clean them.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">Encoding</span>(cie10_cl<span class="sc">$</span>descripcion[<span class="dv">1</span>])</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; [1] &quot;UTF-8&quot;</span></span></code></pre></div>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li><strong>ICD-10 Chile</strong>: <a href="https://deis.minsal.cl/centrofic/" class="uri">https://deis.minsal.cl/centrofic/</a></li>
+<li><strong>WHO ICD-11</strong>: <a href="https://icd.who.int/" class="uri">https://icd.who.int/</a></li>
+<li><strong>ICD-11 API</strong>: <a href="https://icd.who.int/icdapi" class="uri">https://icd.who.int/icdapi</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

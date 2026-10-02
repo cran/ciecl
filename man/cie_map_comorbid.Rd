@@ -2,27 +2,29 @@
 % Please edit documentation in R/cie-comorbid.R
 \name{cie_map_comorbid}
 \alias{cie_map_comorbid}
-\title{Mapeo manual grupos comorbilidad Chile-especifico}
+\title{Mapeo manual de grupos de comorbilidad específicos de Chile}
 \usage{
-cie_map_comorbid(codigos)
+cie_map_comorbid(codes, codigos = lifecycle::deprecated())
 }
 \arguments{
-\item{codigos}{Character vector codigos CIE-10}
+\item{codes}{Character vector de codigos}
+
+\item{codigos}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{codes}.}
 }
 \value{
-tibble con codigo + categoria_comorbilidad
+tibble con columnas: codigo, categoria
 }
 \description{
-Agrupa codigos CIE-10 chilenos en categorias comorbilidad MINSAL.
+Agrupa códigos CIE-10 chilenos en categorías de comorbilidad MINSAL.
 Basado en Decreto 1301/2016 MINSAL + icd::icd10_map_charlson.
 }
 \examples{
 cie_map_comorbid(c("E11.0", "I50.9", "C50.9"))
 }
 \seealso{
-\code{\link{cie_comorbid}}, \code{\link{cie_normalizar}}
+\code{\link[=cie_comorbid]{cie_comorbid()}}, \code{\link[=cie_norm]{cie_norm()}}
 
-Other comorbilidades: 
-\code{\link{cie_comorbid}()}
+Other comorbidities:
+\code{\link[=cie_comorbid]{cie_comorbid()}}
 }
-\concept{comorbilidades}
+\concept{comorbidities}

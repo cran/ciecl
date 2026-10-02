@@ -2,59 +2,81 @@
 % Please edit documentation in R/cie-search.R
 \name{cie_search}
 \alias{cie_search}
-\title{Busqueda difusa (fuzzy) de terminos medicos CIE-10}
+\title{Búsqueda difusa (fuzzy) de términos médicos CIE-10}
 \usage{
 cie_search(
-  texto,
+  text,
   threshold = 0.7,
   max_results = 50,
-  campo = c("descripcion", "inclusion"),
-  solo_fuzzy = FALSE,
-  verbose = TRUE
+  field = c("descripcion", "inclusion"),
+  only_fuzzy = FALSE,
+  verbose = TRUE,
+  include_uso_cl = FALSE,
+  only_uso_cl = FALSE,
+  texto = lifecycle::deprecated(),
+  campo = lifecycle::deprecated(),
+  solo_fuzzy = lifecycle::deprecated()
 )
 }
 \arguments{
-\item{texto}{String termino medico en espanol o sigla
+\item{text}{String término médico en español o sigla
 (ej. "diabetes", "IAM", "TBC")}
 
 \item{threshold}{Numeric entre 0 y 1, umbral similitud
 Jaro-Winkler (default 0.70)}
 
-\item{max_results}{Integer, maximo resultados a retornar (default 50)}
+\item{max_results}{Integer, máximo resultados a retornar (default 50)}
 
-\item{campo}{Character, campo busqueda ("descripcion" o "inclusion")}
+\item{field}{Character, campo búsqueda ("descripcion" o "inclusion")}
 
-\item{solo_fuzzy}{Logical, usar solo busqueda fuzzy
-sin busqueda exacta (default FALSE)}
+\item{only_fuzzy}{Logical, usar solo búsqueda fuzzy
+sin búsqueda exacta (default FALSE)}
 
 \item{verbose}{Logical, mostrar mensajes informativos
 (default TRUE). Usar FALSE en scripts.}
+
+\item{include_uso_cl}{Logical, incluir columna \code{uso_cl} en el output
+(default FALSE). El default difiere de \code{\link[=cie_lookup]{cie_lookup()}} (TRUE) para
+preservar el contrato histórico de cada función. Valores posibles:
+\code{"principal"}, \code{"legado"}, \code{"causa_externa"}, \code{"etiologico"},
+\code{"causa_externa | principal"}.}
+
+\item{only_uso_cl}{Logical, filtrar a códigos vigentes de uso clínico
+en Chile (default FALSE). Cuando es TRUE, excluye los códigos con
+\code{uso_cl == "legado"}.}
+
+\item{texto}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{text}.}
+
+\item{campo}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{field}.}
+
+\item{solo_fuzzy}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{only_fuzzy}.}
 }
 \value{
 tibble ordenado por score descendente (1.0 = coincidencia exacta).
-Si el texto corresponde a una sigla medica, se expande
-automaticamente antes de buscar.
+Si el text corresponde a una sigla médica, se expande
+automáticamente antes de buscar.
 }
 \description{
-Busca en descripciones CIE-10 usando multiples estrategias:
+Busca en descripciones CIE-10 usando múltiples estrategias:
 \enumerate{
-\item Expansion de siglas medicas (IAM, TBC, DM, etc.)
-\item Busqueda exacta por subcadena (mas rapida)
-\item Busqueda fuzzy con Jaro-Winkler (tolera typos)
+\item Expansión de siglas médicas (IAM, TBC, DM, etc.)
+\item Búsqueda exacta por subcadena (más rápida)
+\item Búsqueda fuzzy con Jaro-Winkler (tolera typos)
 }
 }
 \details{
-La busqueda es tolerante a tildes: "neumonia" encuentra "neumonia".
-Soporta siglas medicas comunes: "IAM" busca "infarto agudo miocardio".
+La búsqueda es tolerante a tildes: "neumonia" (sin tilde) encuentra
+"neumonía" (con tilde) en el catálogo.
+Soporta siglas médicas comunes: "IAM" busca "infarto agudo miocardio".
 }
 \examples{
-# Busqueda basica
+# Búsqueda básica
 cie_search("diabetes")
 
-\donttest{
+\dontshow{if (rlang::is_interactive() || identical(Sys.getenv("IN_PKGDOWN"), "true")) withAutoprint(\{ # examplesIf}
 cie_search("neumonia")
 
-# Busqueda por siglas medicas
+# Búsqueda por siglas médicas
 cie_search("IAM")
 cie_search("DM2")
 
@@ -62,16 +84,20 @@ cie_search("DM2")
 cie_search("diabetis")
 
 # Buscar en inclusiones
-cie_search("bacteriana", campo = "inclusion")
-}
+cie_search("bacteriana", field = "inclusion")
+# Filtrar a códigos vigentes Chile (excluye 'legado')
+cie_search("diabetes", only_uso_cl = TRUE)
+# Mostrar la columna uso_cl en el output
+cie_search("diabetes", include_uso_cl = TRUE)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link{cie_lookup}},
-\code{\link{cie_siglas}}, \code{\link{cie10_sql}}
+\code{\link[=cie_lookup]{cie_lookup()}}, \code{\link[=cie_short]{cie_short()}}, \code{\link[=cie10_sql]{cie10_sql()}}
 
-Other busqueda: 
-\code{\link{cie_guia_busqueda}()},
-\code{\link{cie_lookup}()},
-\code{\link{cie_siglas}()}
+Other search:
+\code{\link[=cie_describe]{cie_describe()}},
+\code{\link[=cie_guia_busqueda]{cie_guia_busqueda()}},
+\code{\link[=cie_guide]{cie_guide()}},
+\code{\link[=cie_lookup]{cie_lookup()}}
 }
-\concept{busqueda}
+\concept{search}

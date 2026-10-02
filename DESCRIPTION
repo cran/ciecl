@@ -1,12 +1,22 @@
 Package: ciecl
 Title: International Classification of Diseases 'ICD-10'/'ICD-11' for
         Chile
-Version: 0.9.6
+Version: 1.0.0
 Authors@R: 
-    person("Rodolfo", "Tasso Suazo",
-           email = "rtasso@uchile.cl",
-           role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-1264-4933"))
+    c(person("Rodolfo", "Tasso Suazo",
+             email = "rtasso@uchile.cl",
+             role = c("aut", "cre"),
+             comment = c(ORCID = "0000-0002-1264-4933",
+                         "Grupo de Ciencia de Datos para Salud Pública, Escuela de Salud Pública, U. de Chile")),
+      person("Francisca", "Jofre",
+             role = "ctb",
+             comment = "Package logo design"),
+      person("Ma\u00eblle", "Salmon",
+             role = "rev",
+             comment = "Ma\u00eblle reviewed the package (v. 0.9.8) for rOpenSci, see <https://github.com/ropensci/software-review/issues/765>"),
+      person("Yanina", "Bellini",
+             role = "rev",
+             comment = "Yanina reviewed the package (v. 0.9.8) for rOpenSci, see <https://github.com/ropensci/software-review/issues/765>"))
 Description: Tools for working with the International Classification of
     Diseases ('ICD-10' Chile official 'MINSAL'/'DEIS' v2018). Includes
     optimized 'SQL' search with 'SQLite', fuzzy matching of medical terms
@@ -16,22 +26,31 @@ Description: Tools for working with the International Classification of
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.2
 Depends: R (>= 4.1.0)
-Imports: DBI, RSQLite, stringdist, stringr, dplyr, tibble, tools, utils
-Suggests: comorbidity, gt, httr2, readxl, usethis, withr, writexl,
-        testthat (>= 3.1.5), knitr, litedown (>= 0.9), rmarkdown
+Imports: DBI, RSQLite, stringdist, stringr, dplyr, tibble, tools,
+        utils, lifecycle, rlang, httr2, cli (>= 3.6.0)
+Suggests: comorbidity, gt, readxl, vcr (>= 2.0.0), withr, testthat (>=
+        3.3.0), knitr, rmarkdown
 VignetteBuilder: knitr
-URL: https://rodotasso.github.io/ciecl/,
-        https://github.com/RodoTasso/ciecl
-BugReports: https://github.com/RodoTasso/ciecl/issues
+URL: https://docs.ropensci.org/ciecl/,
+        https://github.com/ropensci/ciecl
+BugReports: https://github.com/ropensci/ciecl/issues
 Config/testthat/edition: 3
-Config/Needs/website: pkgdown
+Config/Needs/website: pkgdown, vcr
 Language: en, es
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-04-19 00:45:44 UTC; tassu
+Packaged: 2026-10-02 13:36:41 UTC; tassu
 Author: Rodolfo Tasso Suazo [aut, cre] (ORCID:
-    <https://orcid.org/0000-0002-1264-4933>)
+    <https://orcid.org/0000-0002-1264-4933>, Grupo de Ciencia de Datos
+    para Salud Pública, Escuela de Salud Pública, U. de Chile),
+  Francisca Jofre [ctb] (Package logo design),
+  Maëlle Salmon [rev] (Maëlle reviewed the package (v. 0.9.8) for
+    rOpenSci, see
+    <https://github.com/ropensci/software-review/issues/765>),
+  Yanina Bellini [rev] (Yanina reviewed the package (v. 0.9.8) for
+    rOpenSci, see
+    <https://github.com/ropensci/software-review/issues/765>)
 Maintainer: Rodolfo Tasso Suazo <rtasso@uchile.cl>
 Repository: CRAN
-Date/Publication: 2026-04-19 14:30:02 UTC
+Date/Publication: 2026-10-02 16:00:14 UTC

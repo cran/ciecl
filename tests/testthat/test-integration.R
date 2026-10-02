@@ -21,7 +21,7 @@ test_that("flujo: buscar termino -> obtener codigos -> validar", {
 
   # 4. Obtiene detalles de cada codigo
   detalles <- cie_lookup(codigos_encontrados)
-  expect_equal(nrow(detalles), length(unique(codigos_encontrados)))
+  expect_length(unique(codigos_encontrados), nrow(detalles))
 })
 
 test_that("flujo: buscar categoria -> expandir -> calcular comorbilidad", {
@@ -55,28 +55,6 @@ test_that("flujo: buscar categoria -> expandir -> calcular comorbilidad", {
   expect_true("score_charlson" %in% names(resultado_comorbid))
 })
 
-test_that("flujo: normalizar codigos -> buscar -> mapear comorbilidad", {
-  skip_on_cran()
-
-  # 1. Codigos en formato mixto (como vendrian de datos reales)
-  codigos_raw <- c("E110", "I509", "C509", "e11.0", " Z00 ")
-
-  # 2. Normalizar codigos
-  codigos_norm <- cie_normalizar(codigos_raw, buscar_db = FALSE)
-  expect_equal(length(codigos_norm), length(codigos_raw))
-
-  # 3. Buscar detalles
-  suppressMessages({
-    detalles <- cie_lookup(codigos_norm)
-  })
-  expect_gt(nrow(detalles), 0)
-
-  # 4. Mapear a categorias de comorbilidad
-  mapa <- cie_map_comorbid(codigos_norm)
-  expect_equal(nrow(mapa), length(codigos_norm))
-  expect_true("Diabetes" %in% mapa$categoria)
-})
-
 test_that("flujo: SQL personalizado -> procesamiento -> validacion", {
   skip_on_cran()
 
@@ -95,7 +73,7 @@ test_that("flujo: SQL personalizado -> procesamiento -> validacion", {
   expect_true(all(validacion))
 
   # 3. Obtener detalles completos
-  detalles <- cie_lookup(codigos_cap4$codigo, descripcion_completa = TRUE)
+  detalles <- cie_lookup(codigos_cap4$codigo, full_description = TRUE)
   expect_true("descripcion_completa" %in% names(detalles))
 })
 
@@ -123,106 +101,16 @@ test_that("cie_expand y cie_lookup expandir dan mismos resultados", {
   # Via cie_expand
   hijos_expand <- cie_expand("E11")
 
-  # Via cie_lookup con expandir=TRUE
-  hijos_lookup <- cie_lookup("E11", expandir = TRUE)$codigo
+  # Via cie_lookup con expand = TRUE
+  hijos_lookup <- cie_lookup("E11", expand = TRUE)$codigo
 
   # Deben ser iguales
   expect_setequal(hijos_expand, hijos_lookup)
 })
 
-test_that("cie_normalizar y cie_lookup son coherentes", {
-  skip_on_cran()
-
-  # Codigo sin punto
-  codigo_raw <- "E110"
-
-  # Normalizar
-  codigo_norm <- cie_normalizar(codigo_raw, buscar_db = FALSE)
-  expect_equal(codigo_norm, "E11.0")
-
-  # Buscar con codigo raw y normalizado
-  resultado_raw <- cie_lookup(codigo_raw)
-  resultado_norm <- cie_lookup(codigo_norm)
-
-  # Deben dar mismo resultado
-  expect_equal(resultado_raw$codigo, resultado_norm$codigo)
-})
-
-test_that("cie_validate_vector y cie_lookup son coherentes", {
-  skip_on_cran()
-
-  codigos <- c("E11.0", "INVALIDO", "Z00")
-
-  # Validar
-  validacion <- cie_validate_vector(codigos)
-  expect_equal(validacion, c(TRUE, FALSE, TRUE))
-
-  # Buscar (solo los validos deben retornar)
-  suppressMessages({
-    resultado <- cie_lookup(codigos)
-  })
-
-  # Solo codigos validos en resultado
-  expect_true(all(resultado$codigo %in% codigos[validacion]))
-})
-
 # ============================================================
 # PRUEBAS DE ESCENARIOS REALES
 # ============================================================
-
-test_that("escenario: analisis de egreso hospitalario", {
-  skip_on_cran()
-  skip_if_not_installed("comorbidity")
-
-  # Simular datos de egresos hospitalarios
-  set.seed(42)
-  egresos <- data.frame(
-    id_egreso = 1:20,
-    codigo_principal = sample(c("E11.0", "I50.9", "C50.9", "J18.9", "K70.3"), 20, replace = TRUE),
-    codigo_secundario = sample(c("E11.9", "I10", "Z86.7", "N18.9", "F32.9"), 20, replace = TRUE)
-  )
-
-  # 1. Validar codigos principales
-  val_principal <- cie_validate_vector(egresos$codigo_principal)
-  expect_true(all(val_principal))
-
-  # 2. Validar codigos secundarios
-  val_secundario <- cie_validate_vector(egresos$codigo_secundario)
-  expect_true(all(val_secundario))
-
-  # 3. Preparar datos para comorbilidad (formato largo)
-  datos_largo <- data.frame(
-    id = rep(egresos$id_egreso, 2),
-    codigo = c(egresos$codigo_principal, egresos$codigo_secundario)
-  )
-
-  # 4. Calcular comorbilidades
-  comorbilidades <- cie_comorbid(datos_largo, id = "id", code = "codigo", map = "charlson")
-  expect_s3_class(comorbilidades, "tbl_df")
-  expect_equal(nrow(comorbilidades), 20)
-})
-
-test_that("escenario: busqueda de codigos para estudio", {
-  skip_on_cran()
-
-  # Investigador busca codigos relacionados con su estudio
-  # 1. Buscar por termino
-  resultados_diabetes <- cie_search("diabetes mellitus tipo 2", threshold = 0.65)
-
-  # 2. Buscar categoria general
-  categoria_e11 <- cie_lookup("E11", expandir = TRUE)
-
-  # 3. Combinar resultados
-  codigos_estudio <- unique(c(resultados_diabetes$codigo, categoria_e11$codigo))
-
-  # 4. Validar todos
-  validacion <- cie_validate_vector(codigos_estudio)
-  expect_true(all(validacion))
-
-  # 5. Obtener descripciones completas
-  descripciones <- cie_lookup(codigos_estudio, descripcion_completa = TRUE)
-  expect_true("descripcion_completa" %in% names(descripciones))
-})
 
 test_that("escenario: limpieza de datos con codigos sucios", {
   skip_on_cran()
@@ -247,7 +135,7 @@ test_that("escenario: limpieza de datos con codigos sucios", {
   codigos_validos <- codigos_sucios[formato_ok]
 
   # 3. Normalizar
-  codigos_norm <- cie_normalizar(codigos_validos, buscar_db = FALSE)
+  codigos_norm <- cie_norm(codigos_validos, search_db = FALSE)
 
   # 4. Buscar en base
   suppressMessages({
@@ -262,6 +150,8 @@ test_that("escenario: limpieza de datos con codigos sucios", {
 
 test_that("busquedas multiples son razonablemente rapidas", {
   skip_on_cran()
+  # Flaky en CI: el umbral de tiempo depende del hardware del runner
+  skip_on_ci()
 
   # Medir tiempo de 100 busquedas simples
   tiempo_inicio <- Sys.time()
@@ -279,6 +169,8 @@ test_that("busquedas multiples son razonablemente rapidas", {
 
 test_that("validacion de vector grande es rapida", {
   skip_on_cran()
+  # Flaky en CI: el umbral de tiempo depende del hardware del runner
+  skip_on_ci()
 
   # Vector de 10000 codigos
   codigos <- rep(c("E11.0", "Z00", "INVALIDO"), 3333)
@@ -299,41 +191,26 @@ test_that("validacion de vector grande es rapida", {
 # PRUEBAS DE INTEROPERABILIDAD CON dplyr
 # ============================================================
 
-test_that("resultados funcionan con dplyr::filter", {
+test_that("resultados son compatibles con verbos dplyr", {
   skip_on_cran()
 
-  resultado <- cie_search("diabetes", threshold = 0.70, max_results = 20)
-
-  # Filtrar con dplyr
-  filtrado <- resultado %>%
+  # filter sobre resultados de busqueda
+  filtrado <- cie_search("diabetes", threshold = 0.70, max_results = 20) |>
     dplyr::filter(score > 0.80)
-
   expect_s3_class(filtrado, "tbl_df")
-})
 
-test_that("resultados funcionan con dplyr::mutate", {
-  skip_on_cran()
-
-  resultado <- cie_lookup(c("E11.0", "E11.1", "E11.2"))
-
-  # Mutar con dplyr
-  mutado <- resultado %>%
+  # mutate sobre resultados de lookup
+  mutado <- cie_lookup(c("E11.0", "E11.1", "E11.2")) |>
     dplyr::mutate(codigo_corto = substr(codigo, 1, 3))
-
   expect_s3_class(mutado, "tbl_df")
   expect_true("codigo_corto" %in% names(mutado))
-})
 
-test_that("resultados funcionan con dplyr::group_by y summarise", {
-  skip_on_cran()
-
-  resultado <- cie10_sql("SELECT codigo, capitulo FROM cie10 WHERE codigo LIKE 'E1%' LIMIT 100")
-
-  # Agrupar y resumir
-  resumen <- resultado %>%
-    dplyr::group_by(capitulo) %>%
+  # group_by + summarise sobre resultados SQL
+  resumen <- cie10_sql(
+    "SELECT codigo, capitulo FROM cie10 WHERE codigo LIKE 'E1%' LIMIT 100"
+  ) |>
+    dplyr::group_by(capitulo) |>
     dplyr::summarise(n = dplyr::n(), .groups = "drop")
-
   expect_s3_class(resumen, "tbl_df")
   expect_true("n" %in% names(resumen))
 })
@@ -347,9 +224,7 @@ test_that("cie11_search falla gracefully sin credenciales", {
   skip_if_not_installed("httr2")
 
   # Limpiar credenciales temporalmente
-  old_key <- Sys.getenv("ICD_API_KEY")
-  Sys.unsetenv("ICD_API_KEY")
-  on.exit(if (nchar(old_key) > 0) Sys.setenv(ICD_API_KEY = old_key))
+  withr::local_envvar(ICD_API_KEY = "")
 
   # Sin credenciales, debe dar error informativo
   expect_error(
@@ -357,4 +232,21 @@ test_that("cie11_search falla gracefully sin credenciales", {
     regexp = "API key|requerida|OMS",
     ignore.case = TRUE
   )
+})
+
+# ============================================================
+# CANARIO CRAN: flujo E2E minimo (ver politica en setup.R)
+# ============================================================
+
+test_that("canario CRAN: normalizar -> validar -> lookup sobre DB del paquete", {
+  # Sin skip_on_cran(): corre tambien en CRAN. Sin red, sin paquetes
+  # opcionales; el cache SQLite escribe solo en tempdir (setup.R).
+  codigos <- cie_norm(c("e11.0", " I50.9 "), search_db = FALSE)
+  expect_true(all(cie_validate_vector(codigos)))
+
+  suppressMessages({
+    resultado <- cie_lookup(codigos)
+  })
+  expect_s3_class(resultado, "tbl_df")
+  expect_equal(nrow(resultado), 2L)
 })

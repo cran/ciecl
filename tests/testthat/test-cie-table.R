@@ -1,7 +1,9 @@
 # Tests para cie_table (tablas gt)
 
-test_that("cie_table requiere gt instalado",
-{
+# canario CRAN: unico test de cie_table() sin skip_on_cran.
+# Decision: canario (no olvido). Es la unica cobertura CRAN de la rama
+# cie_table(); lookup ligero ("E11") sobre DB cacheada + render gt acotado.
+test_that("cie_table requiere gt instalado", {
   skip_if_not_installed("gt")
 
   # Test basico con codigo valido
@@ -9,33 +11,18 @@ test_that("cie_table requiere gt instalado",
   expect_s3_class(tabla, "gt_tbl")
 })
 
-test_that("cie_table funciona con multiples codigos", {
-  skip_if_not_installed("gt")
-  skip_on_cran()
-
-  tabla <- cie_table(c("E11", "I10"))
-  expect_s3_class(tabla, "gt_tbl")
-})
-
 test_that("cie_table maneja codigo invalido", {
+  testthat::local_reproducible_output()
   skip_if_not_installed("gt")
   skip_on_cran()
 
   # Codigo que no existe lanza error
-  expect_error(cie_table("XXXXX"), "no encontrado")
+  expect_snapshot(cie_table("XXXXX"), error = TRUE)
 })
 
 # ============================================================
 # PRUEBAS ADICIONALES cie_table()
 # ============================================================
-
-test_that("cie_table genera tabla gt correctamente", {
-  skip_if_not_installed("gt")
-  skip_on_cran()
-
-  tabla <- cie_table("E11")
-  expect_s3_class(tabla, "gt_tbl")
-})
 
 test_that("cie_table genera header correcto", {
   skip_if_not_installed("gt")
@@ -48,24 +35,6 @@ test_that("cie_table genera header correcto", {
 
   # gt tables tienen estructura interna que podemos verificar
   expect_true("_heading" %in% names(tabla))
-})
-
-test_that("cie_table funciona con codigo categoria", {
-  skip_if_not_installed("gt")
-  skip_on_cran()
-
-  # Categoria sin punto (expande a todos los hijos)
-  tabla <- cie_table("I10")
-  expect_s3_class(tabla, "gt_tbl")
-})
-
-test_that("cie_table funciona con codigo especifico", {
-  skip_if_not_installed("gt")
-  skip_on_cran()
-
-  # Codigo especifico con punto
-  tabla <- cie_table("E11.0")
-  expect_s3_class(tabla, "gt_tbl")
 })
 
 test_that("cie_table expande jerarquia automaticamente", {
@@ -96,11 +65,19 @@ test_that("cie_table tiene columnas esperadas", {
 
 test_that("cie_table error sin gt instalado", {
   # Este test solo funciona si gt NO esta instalado
-  skip_if(requireNamespace("gt", quietly = TRUE),
-          "gt esta instalado")
+  skip_if(
+    requireNamespace("gt", quietly = TRUE),
+    "gt esta instalado"
+  )
 
   expect_error(
     cie_table("E11"),
     "gt"
   )
+})
+
+test_that("cie_table valida code escalar (F15)", {
+  expect_error(cie_table(c("E11", "I10")), class = "ciecl_invalid_input")
+  expect_error(cie_table(123), class = "ciecl_invalid_input")
+  expect_error(cie_table(NA_character_), class = "ciecl_invalid_input")
 })

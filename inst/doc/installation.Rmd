@@ -1,0 +1,215 @@
+---
+title: "Installation and Configuration Guide"
+author: "Rodolfo Tasso Suazo"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Installation and Configuration Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+This guide is written for people who work with health databases and may still be learning R: installing a package from GitHub with `pak` and setting up the WHO API key are not obvious steps for them, so they are explained here in detail. If you are already comfortable with R, you can skip this vignette: `pak::pak("ropensci/ciecl")` is all you need to get started.
+
+## Installation
+
+The simplest way to install `ciecl` is with the [`pak`](https://pak.r-lib.org/) package, which automatically resolves R and system dependencies.
+
+### From CRAN (stable version)
+
+```{r eval=FALSE}
+install.packages("ciecl")
+```
+
+### From GitHub (development version)
+
+```{r eval=FALSE}
+install.packages("pak")
+pak::pak("ropensci/ciecl")
+```
+
+To also install all optional dependencies (comorbidities, GT tables, ICD-11 API):
+
+```{r eval=FALSE}
+pak::pak("ropensci/ciecl", dependencies = TRUE)
+```
+
+### Dependencies by feature
+
+The package core (ICD-10 code lookup and search) requires no optional
+packages. These are the suggested dependencies by task:
+
+| Feature | Package | Installation |
+|---------|---------|--------------|
+| Charlson/Elixhauser comorbidity indices with `cie_comorbid()` | `comorbidity` | `install.packages("comorbidity")` |
+| Formatted HTML tables with `cie_table()` | `gt` | `install.packages("gt")` |
+| Read MINSAL Excel files | `readxl` | `install.packages("readxl")` |
+
+## System requirements
+
+### Windows
+
+No additional dependencies: the installation works out of the box.
+
+### macOS
+
+Install the Xcode Command Line Tools if you compile from source:
+
+```bash
+xcode-select --install
+```
+
+### Linux (Ubuntu/Debian)
+
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+  r-base-dev \
+  libcurl4-openssl-dev \
+  libssl-dev \
+  libxml2-dev
+```
+
+### Linux (Fedora/RHEL/CentOS)
+
+```bash
+sudo dnf install -y \
+  R-devel \
+  libcurl-devel \
+  openssl-devel \
+  libxml2-devel
+```
+
+## ICD-11 API Configuration (optional)
+
+The CIE-10 functions (the core of the package) work without credentials. You only need free WHO credentials to use `cie11_search()`, which queries the WHO ICD-11 classification.
+
+> **Security:** never write the literal key in your scripts (not even via
+> `api_key = "..."`): sharing the code would expose your credentials.
+> The recommended way is the `ICD_API_KEY` environment variable, set with
+> `usethis::edit_r_environ()` (Option B) or via `keyring` (Option A). The
+> `api_key` argument of `cie11_search()` exists only for exceptional cases
+> (e.g. multiple keys or environments where env vars cannot be set).
+
+### Step 1: Get credentials
+
+1. Visit <https://icd.who.int/icdapi>
+2. Register with your email (free)
+3. You will receive a `Client ID` and a `Client Secret`
+
+### Step 2: Store the credentials
+
+**Option A: `keyring` (recommended)**
+
+The [`keyring`](https://keyring.r-lib.org/) package stores secrets in the OS native keychain (macOS Keychain, Windows Credential Store, Linux Secret Service), avoiding plain-text secrets in `.Renviron`.
+
+```{r eval=FALSE}
+# Once: store "client_id:client_secret" in the keychain
+keyring::key_set("ciecl_icd11")
+
+# In each session where you use the API
+Sys.setenv(ICD_API_KEY = keyring::key_get("ciecl_icd11"))
+```
+
+**Option B: `.Renviron` file**
+
+Create or edit `~/.Renviron` (for example with `usethis::edit_r_environ()` if you have `usethis` installed) and add:
+
+```
+ICD_API_KEY=your_client_id:your_client_secret
+```
+
+Restart R for it to take effect. Do not commit `.Renviron` to Git.
+
+**Option C: Current session only (temporary)**
+
+```{r eval=FALSE}
+Sys.setenv(ICD_API_KEY = "your_client_id:your_client_secret")
+```
+
+### Step 3: Verify the configuration
+
+```{r eval=FALSE}
+# Check that the environment variable is set
+Sys.getenv("ICD_API_KEY")
+
+# Test an ICD-11 search
+library(ciecl)
+cie11_search("diabetes")
+```
+
+## SQLite cache
+
+The package uses a local SQLite database for efficient searches. It is created automatically on first use, in the user data directory:
+
+```{r eval=FALSE}
+# Show the cache location
+tools::R_user_dir("ciecl", "data")
+```
+
+You can change that location by setting the `CIECL_CACHE_DIR` environment variable before loading the package. To force a rebuild of the database (for example, after updating the package):
+
+```{r eval=FALSE}
+library(ciecl)
+cie10_clear_cache()
+```
+
+## Verify the installation
+
+```{r eval=FALSE}
+library(ciecl)
+
+# Check that the package loads correctly
+packageVersion("ciecl")
+
+# Verify catalogue access
+nrow(cie10_cl)
+
+# Test a basic lookup
+cie_lookup("E11.0")
+
+# Test fuzzy search
+cie_search("diabetes")
+```
+
+## Troubleshooting
+
+### Error: "package 'ciecl' is not available"
+
+Check that a CRAN repository is configured in your R session, then install as usual:
+
+```{r eval=FALSE}
+install.packages("ciecl")
+```
+
+### Compilation error on Linux
+
+Install the system dependencies listed in the
+"System requirements" section and try the installation again.
+
+### The ICD-11 API does not respond
+
+1. Check that the credential is set: `Sys.getenv("ICD_API_KEY")` must not return an empty string.
+2. Check your internet connection.
+3. Check the WHO service status at <https://icd.who.int/icdapi>: if it is down, the ICD-10 functions keep working because they do not depend on the API.
+
+### Corrupt cache
+
+Clear the cache and restart R:
+
+```{r eval=FALSE}
+ciecl::cie10_clear_cache()
+```
+
+## Support
+
+- Report issues: <https://github.com/ropensci/ciecl/issues>
+- Documentation: <https://docs.ropensci.org/ciecl/>

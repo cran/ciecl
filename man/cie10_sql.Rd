@@ -4,35 +4,45 @@
 \alias{cie10_sql}
 \title{Ejecutar consultas SQL sobre CIE-10 Chile}
 \usage{
-cie10_sql(query, close = TRUE)
+cie10_sql(query, close = lifecycle::deprecated())
 }
 \arguments{
-\item{query}{String SQL valido SQLite (SELECT/WHERE/JOIN)}
+\item{query}{String SQL válido SQLite. Soporta \code{SELECT}, \code{WHERE},
+\code{JOIN}, \code{FROM}, \verb{ORDER BY}, \verb{GROUP BY} y \code{HAVING}. Por seguridad
+solo se permiten sentencias \code{SELECT} (sin escritura ni múltiples
+sentencias).}
 
-\item{close}{Deprecated. Ignorado — la conexion es pooled y se
-gestiona automaticamente. Sera eliminado en una version futura.}
+\item{close}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Ignorado - la conexión
+es pooled y se gestiona automáticamente. Será eliminado en una
+versión futura.}
 }
 \value{
-tibble resultado query
+tibble con el resultado de la consulta
 }
 \description{
-Ejecutar consultas SQL sobre CIE-10 Chile
+Permite ejecutar sentencias SQL de solo lectura sobre la tabla \code{cie10},
+el mismo dataset que entrega \link{cie10_cl}. Útil para consultas que no
+están cubiertas por \code{\link[=cie_search]{cie_search()}}/\code{\link[=cie_lookup]{cie_lookup()}} (agregaciones,
+conteos por capítulo, joins con datos propios cargados en la misma
+conexión, etc.). Para aprender SQL desde cero puede revisar
+\url{https://www.w3schools.com/sql/} o la documentación de SQLite
+(\url{https://www.sqlite.org/lang_select.html}).
 }
 \examples{
 # Buscar diabetes
 cie10_sql("SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE 'E11\%'")
 
-\donttest{
+\dontshow{if (rlang::is_interactive() || identical(Sys.getenv("IN_PKGDOWN"), "true")) withAutoprint(\{ # examplesIf}
 # Contar por capitulo
 cie10_sql("SELECT capitulo, COUNT(*) n FROM cie10 GROUP BY capitulo")
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link{cie10_clear_cache}}, \code{\link{cie10_disconnect}},
-\code{\link{cie_search}}
+\link{cie10_cl}, \code{\link[=cie10_clear_cache]{cie10_clear_cache()}}, \code{\link[=cie10_disconnect]{cie10_disconnect()}},
+\code{\link[=cie_search]{cie_search()}}, \code{\link[=cie_guide]{cie_guide()}}
 
-Other sql: 
-\code{\link{cie10_clear_cache}()},
-\code{\link{cie10_disconnect}()}
+Other sql_backend:
+\code{\link[=cie10_clear_cache]{cie10_clear_cache()}},
+\code{\link[=cie10_disconnect]{cie10_disconnect()}}
 }
-\concept{sql}
+\concept{sql_backend}

@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Rodolfo Tasso Suazo" />
+
+<meta name="date" content="2026-10-02" />
+
+<title>Introduction to ciecl: Chilean ICD-10 in R</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to ciecl: Chilean ICD-10 in
+R</h1>
+<h4 class="author">Rodolfo Tasso Suazo</h4>
+<h4 class="date">2026-10-02</h4>
+
+
+
+<blockquote>
+<p><strong>Version 0.9.8</strong>: Available on CRAN with SQLite
+optimizations, XLSX support, and standardized English arguments.</p>
+</blockquote>
+<div id="the-problem-working-with-chilean-diagnostic-codes-in-r" class="section level2">
+<h2>The problem: working with Chilean diagnostic codes in R</h2>
+<p>Chilean health information systems — DEIS, GRD, REM — store diagnoses
+using the ICD-10 classification in its official MINSAL/DEIS v2018
+version. Analysts working with these datasets in R typically have to
+cross-reference PDF catalogs, Excel tables, or ministry websites to look
+up codes, which breaks the analytical workflow.</p>
+<p><code>ciecl</code> solves this by embedding all <strong>39,877 ICD-10
+codes</strong> from the official catalog directly into R, with functions
+for fast lookup, hierarchical expansion, fuzzy search, and comorbidity
+scoring.</p>
+</div>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p>The package is available on CRAN:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;ciecl&quot;</span>)</span></code></pre></div>
+<p>To install the development version with the latest fixes:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Requires the pak package</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;ropensci/ciecl&quot;</span>)</span></code></pre></div>
+</div>
+<div id="direct-sql-queries-against-the-catalog" class="section level2">
+<h2>Direct SQL queries against the catalog</h2>
+<p><code>cie10_sql()</code> exposes the full catalog through a local
+SQLite database, allowing you to filter with the full expressiveness of
+SQL. This is useful when you know the code structure but not the exact
+label — for instance, to retrieve all subcodes within a category.</p>
+<p>The example below fetches the first five type 2 diabetes codes
+(category E11):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">cie10_sql</span>(<span class="st">&quot;SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE &#39;E11%&#39; LIMIT 5&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 2</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                                           </span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;                                                 </span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; 1 E11    Diabetes mellitus no insulinodependiente              </span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 2 E11.0  Diabetes mellitus tipo 2 con coma                     </span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; 3 E11.1  Diabetes mellitus tipo 2 con cetoacidosis             </span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; 4 E11.2  Diabetes mellitus tipo 2 con complicaciones renales   </span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; 5 E11.3  Diabetes mellitus tipo 2 con complicaciones oftálmicas</span></span></code></pre></div>
+<p>Only <code>SELECT</code> queries are accepted, protecting catalog
+integrity.</p>
+</div>
+<div id="looking-up-known-codes" class="section level2">
+<h2>Looking up known codes</h2>
+<p>When codes are already present in your data — such as hospital
+discharge diagnoses — <code>cie_lookup()</code> retrieves the official
+description for one or more codes at once.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Single code</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11.0&quot;</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 11</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion       categoria seccion capitulo_nombre inclusion exclusion</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; 1 E11.0  Diabetes mellitu… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; # ℹ 4 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;,</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; #   uso_cl &lt;chr&gt;</span></span></code></pre></div>
+<p>The function accepts vectors, making it straightforward to use inside
+a <code>dplyr</code> pipeline:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Multiple codes from different chapters</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I10&quot;</span>, <span class="st">&quot;Z00&quot;</span>, <span class="st">&quot;J44.0&quot;</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 11</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion       categoria seccion capitulo_nombre inclusion exclusion</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; 1 E11.0  Diabetes mellitu… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; 2 I10    Hipertensión ese… I10 HIPE… I10-I1… Cap.09  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; 3 J44.0  Enfermedad pulmo… J44 OTRA… J40-J4… Cap.10  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; 4 Z00    Examen general e… Z00 EXAM… Z00-Z1… Cap.21  FACTOR… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 4 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;,</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; #   uso_cl &lt;chr&gt;</span></span></code></pre></div>
+<p>When working at the category level (three-digit codes), you may need
+all subcodes within a category. The <code>expand = TRUE</code> argument
+traverses the hierarchy and returns the parent category together with
+all its children:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11&quot;</span>, <span class="at">expand =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 11</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion      categoria seccion capitulo_nombre inclusion exclusion</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt;  1 E11    Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt;  2 E11.0  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt;  3 E11.1  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;  4 E11.2  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;  5 E11.3  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  6 E11.4  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  7 E11.5  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  8 E11.6  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  9 E11.7  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; 10 E11.8  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; 11 E11.9  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; # ℹ 4 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;,</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; #   uso_cl &lt;chr&gt;</span></span></code></pre></div>
+</div>
+<div id="extracting-descriptions-for-use-in-tables-and-plots" class="section level2">
+<h2>Extracting descriptions for use in tables and plots</h2>
+<p>When you only need the description text — without the full structure
+returned by <code>cie_lookup()</code> — <code>cie_describe()</code>
+returns a character vector of descriptions in the same order as the
+input codes. This is designed for use inside <code>mutate()</code> or as
+axis labels in plots:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">cie_describe</span>(<span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I10&quot;</span>))</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Diabetes mellitus tipo 2 con coma&quot; &quot;Hipertensión esencial (primaria)&quot;</span></span></code></pre></div>
+<p>A typical use case with hospital discharge data:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>discharges <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">id          =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">diag_code   =</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I10&quot;</span>, <span class="st">&quot;J44.0&quot;</span>, <span class="st">&quot;E11.0&quot;</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>discharges <span class="sc">|&gt;</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">description =</span> <span class="fu">cie_describe</span>(diag_code))</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt;   id diag_code</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; 1  1     E11.0</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; 2  2       I10</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; 3  3     J44.0</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; 4  4     E11.0</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt;                                                                                        description</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt; 1                                                                Diabetes mellitus tipo 2 con coma</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; 2                                                                 Hipertensión esencial (primaria)</span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; 3 Enfermedad pulmonar obstructiva crónica con infección aguda de las vías respiratorias inferiores</span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt; 4                                                                Diabetes mellitus tipo 2 con coma</span></span></code></pre></div>
+</div>
+<div id="fuzzy-search-with-tolerance-for-misspellings" class="section level2">
+<h2>Fuzzy search with tolerance for misspellings</h2>
+<p>Clinical text data often contains spelling errors, abbreviations, or
+non-standard terms. <code>cie_search()</code> uses Jaro-Winkler string
+similarity to find matching codes even when the search term contains
+typos.</p>
+<p>The <code>threshold</code> parameter controls strictness: higher
+values require closer matches. A range of 0.70 to 0.85 works well in
+practice:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># &quot;diabetis&quot; instead of &quot;diabetes&quot; — the typo does not prevent finding the code</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;diabetis with coma&quot;</span>, <span class="at">threshold =</span> <span class="fl">0.75</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 22 × 4</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt;  1 B15.0  Hepatitis aguda tipo A, con coma hepático              0.333 B15 HEPA…</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt;  2 B15.9  Hepatitis aguda tipo A, sin coma hepático              0.333 B15 HEPA…</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt;  3 B16.0  Hepatitis aguda tipo B, con agente delta (coinfección… 0.333 B16 HEPA…</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt;  4 B16.1  Hepatitis aguda tipo B, con agente delta (coinfección… 0.333 B16 HEPA…</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt;  5 B16.2  Hepatitis aguda tipo B, sin agente delta, con coma he… 0.333 B16 HEPA…</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt;  6 B16.9  Hepatitis aguda tipo B, sin agente delta y sin coma h… 0.333 B16 HEPA…</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt;  7 B19.0  Hepatitis viral no especificada, con coma hepático     0.333 B19 HEPA…</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt;  8 B19.9  Hepatitis viral no especificada, sin  coma hepático    0.333 B19 HEPA…</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt;  9 E03.5  Coma mixedematoso                                      0.333 E03 OTRO…</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; 10 E10.0  Diabetes mellitus tipo 1 con coma                      0.333 E10 DIAB…</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; # ℹ 12 more rows</span></span></code></pre></div>
+</div>
+<div id="charlson-and-elixhauser-comorbidity-indices" class="section level2">
+<h2>Charlson and Elixhauser comorbidity indices</h2>
+<p>The Charlson and Elixhauser indices are widely used in clinical
+research and risk adjustment. <code>cie_comorbid()</code> computes these
+indices from a data frame containing patient identifiers and their
+associated diagnostic codes.</p>
+<p>This function requires the <code>comorbidity</code> package. Install
+it with <code>install.packages(&quot;comorbidity&quot;)</code> if needed:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Requires: install.packages(&quot;comorbidity&quot;)</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>patient_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">patient_id  =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>),</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">diagnosis   =</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I50.9&quot;</span>, <span class="st">&quot;C50.9&quot;</span>, <span class="st">&quot;N18.5&quot;</span>, <span class="st">&quot;J44.0&quot;</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="fu">cie_comorbid</span>(patient_df, <span class="at">id =</span> <span class="st">&quot;patient_id&quot;</span>, <span class="at">code =</span> <span class="st">&quot;diagnosis&quot;</span>, <span class="at">map =</span> <span class="st">&quot;charlson&quot;</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 19</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt;   patient_id    mi   chf   pvd  cevd dementia   cpd rheumd   pud   mld  diab</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt;        &lt;dbl&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt; &lt;int&gt;  &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;</span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; 1          1     0     1     0     0        0     0      0     0     0     1</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; 2          2     0     0     0     0        0     0      0     0     0     0</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt; 3          3     0     0     0     0        0     1      0     0     0     0</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt; # ℹ 8 more variables: diabwc &lt;int&gt;, hp &lt;int&gt;, rend &lt;int&gt;, canc &lt;int&gt;,</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt; #   msld &lt;int&gt;, metacanc &lt;int&gt;, aids &lt;int&gt;, score_charlson &lt;dbl&gt;</span></span></code></pre></div>
+<p>The result is a data frame with one row per patient and columns for
+each condition in the selected index, plus a weighted total score.</p>
+</div>
+<div id="formatted-tables-with-gt" class="section level2">
+<h2>Formatted tables with gt</h2>
+<p>For reports and presentations, <code>cie_table()</code> generates an
+enriched HTML table of all codes within a category using the
+<code>gt</code> package. Requires <code>gt</code> to be installed:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Requires: install.packages(&quot;gt&quot;)</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">cie_table</span>(<span class="st">&quot;E11&quot;</span>)</span></code></pre></div>
+<div id="jnaantzuki" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#jnaantzuki table {
+font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+#jnaantzuki thead, #jnaantzuki tbody, #jnaantzuki tfoot, #jnaantzuki tr, #jnaantzuki td, #jnaantzuki th {
+border-style: none;
+}
+#jnaantzuki p {
+margin: 0;
+padding: 0;
+}
+#jnaantzuki .gt_table {
+display: table;
+border-collapse: collapse;
+line-height: normal;
+margin-left: auto;
+margin-right: auto;
+color: #333333;
+font-size: 12px;
+font-weight: normal;
+font-style: normal;
+background-color: #FFFFFF;
+width: auto;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #A8A8A8;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #A8A8A8;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+}
+#jnaantzuki .gt_caption {
+padding-top: 4px;
+padding-bottom: 4px;
+}
+#jnaantzuki .gt_title {
+color: #FFFFFF;
+font-size: 125%;
+font-weight: initial;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-color: #FFFFFF;
+border-bottom-width: 0;
+}
+#jnaantzuki .gt_subtitle {
+color: #FFFFFF;
+font-size: 85%;
+font-weight: initial;
+padding-top: 3px;
+padding-bottom: 5px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-color: #FFFFFF;
+border-top-width: 0;
+}
+#jnaantzuki .gt_heading {
+background-color: #1F77B4;
+text-align: center;
+border-bottom-color: #FFFFFF;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#jnaantzuki .gt_bottom_border {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#jnaantzuki .gt_col_headings {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#jnaantzuki .gt_col_heading {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 6px;
+padding-left: 5px;
+padding-right: 5px;
+overflow-x: hidden;
+}
+#jnaantzuki .gt_column_spanner_outer {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+padding-top: 0;
+padding-bottom: 0;
+padding-left: 4px;
+padding-right: 4px;
+}
+#jnaantzuki .gt_column_spanner_outer:first-child {
+padding-left: 0;
+}
+#jnaantzuki .gt_column_spanner_outer:last-child {
+padding-right: 0;
+}
+#jnaantzuki .gt_column_spanner {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 5px;
+overflow-x: hidden;
+display: inline-block;
+width: 100%;
+}
+#jnaantzuki .gt_spanner_row {
+border-bottom-style: hidden;
+}
+#jnaantzuki .gt_group_heading {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+text-align: left;
+}
+#jnaantzuki .gt_empty_group_heading {
+padding: 0.5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: middle;
+}
+#jnaantzuki .gt_from_md > :first-child {
+margin-top: 0;
+}
+#jnaantzuki .gt_from_md > :last-child {
+margin-bottom: 0;
+}
+#jnaantzuki .gt_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+margin: 10px;
+border-top-style: solid;
+border-top-width: 1px;
+border-top-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+overflow-x: hidden;
+}
+#jnaantzuki .gt_stub {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+}
+#jnaantzuki .gt_stub_row_group {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+vertical-align: top;
+}
+#jnaantzuki .gt_row_group_first td {
+border-top-width: 2px;
+}
+#jnaantzuki .gt_row_group_first th {
+border-top-width: 2px;
+}
+#jnaantzuki .gt_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#jnaantzuki .gt_first_summary_row {
+border-top-style: solid;
+border-top-color: #D3D3D3;
+}
+#jnaantzuki .gt_first_summary_row.thick {
+border-top-width: 2px;
+}
+#jnaantzuki .gt_last_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#jnaantzuki .gt_grand_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#jnaantzuki .gt_first_grand_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-style: double;
+border-top-width: 6px;
+border-top-color: #D3D3D3;
+}
+#jnaantzuki .gt_last_grand_summary_row_top {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: double;
+border-bottom-width: 6px;
+border-bottom-color: #D3D3D3;
+}
+#jnaantzuki .gt_striped {
+background-color: rgba(128, 128, 128, 0.05);
+}
+#jnaantzuki .gt_table_body {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#jnaantzuki .gt_footnotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#jnaantzuki .gt_footnote {
+margin: 0px;
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#jnaantzuki .gt_sourcenotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#jnaantzuki .gt_sourcenote {
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#jnaantzuki .gt_left {
+text-align: left;
+}
+#jnaantzuki .gt_center {
+text-align: center;
+}
+#jnaantzuki .gt_right {
+text-align: right;
+font-variant-numeric: tabular-nums;
+}
+#jnaantzuki .gt_font_normal {
+font-weight: normal;
+}
+#jnaantzuki .gt_font_bold {
+font-weight: bold;
+}
+#jnaantzuki .gt_font_italic {
+font-style: italic;
+}
+#jnaantzuki .gt_super {
+font-size: 65%;
+}
+#jnaantzuki .gt_footnote_marks {
+font-size: 75%;
+vertical-align: 0.4em;
+position: initial;
+}
+#jnaantzuki .gt_asterisk {
+font-size: 100%;
+vertical-align: 0;
+}
+#jnaantzuki .gt_indent_1 {
+text-indent: 5px;
+}
+#jnaantzuki .gt_indent_2 {
+text-indent: 10px;
+}
+#jnaantzuki .gt_indent_3 {
+text-indent: 15px;
+}
+#jnaantzuki .gt_indent_4 {
+text-indent: 20px;
+}
+#jnaantzuki .gt_indent_5 {
+text-indent: 25px;
+}
+#jnaantzuki .katex-display {
+display: inline-flex !important;
+margin-bottom: 0.75em !important;
+}
+#jnaantzuki div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+height: 0px !important;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_heading">
+      <td colspan="2" class="gt_heading gt_title gt_font_normal" style>CIE-10 Chile: E11</td>
+    </tr>
+    <tr class="gt_heading">
+      <td colspan="2" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>Fuente: MINSAL/DEIS v2018</td>
+    </tr>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="codigo">Codigo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="descripcion">Diagnostico</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus no insulinodependiente</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.0</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con coma</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.1</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con cetoacidosis</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.2</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones renales</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.3</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones oftálmicas</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.4</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones neurológicas</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.5</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones  circulatorias periféricas</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.6</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con otras complicaciones  especificadas</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.7</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones múltiples</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.8</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones no especificadas</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.9</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 sin complicaciones</span></td></tr>
+  </tbody>
+  
+</table>
+</div>
+</div>
+<div id="data-source" class="section level2">
+<h2>Data source</h2>
+<p>The data included in <code>ciecl</code> comes from the official
+ICD-10 catalog published by the Chilean Ministry of Health through the
+Department of Health Statistics and Information (DEIS):</p>
+<ul>
+<li>FIC Chile Center: <a href="https://deis.minsal.cl/centrofic/" class="uri">https://deis.minsal.cl/centrofic/</a></li>
+<li>DEIS Repository: <a href="https://deis.minsal.cl" class="uri">https://deis.minsal.cl</a></li>
+</ul>
+</div>
+<div id="collaboration-and-support" class="section level2">
+<h2>Collaboration and Support</h2>
+<ul>
+<li>Report issues or suggestions: <a href="https://github.com/ropensci/ciecl/issues" class="uri">https://github.com/ropensci/ciecl/issues</a></li>
+<li>Package repository: <a href="https://github.com/ropensci/ciecl" class="uri">https://github.com/ropensci/ciecl</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

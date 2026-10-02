@@ -12,9 +12,9 @@
 
 <meta name="author" content="Rodolfo Tasso Suazo" />
 
-<meta name="date" content="2026-04-18" />
+<meta name="date" content="2026-10-02" />
 
-<title>Introduccion a ciecl: CIE-10 Chile en R</title>
+<title>Introducción a ciecl: CIE-10 Chile en R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -339,131 +339,658 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Introduccion a ciecl: CIE-10 Chile en
+<h1 class="title toc-ignore">Introducción a ciecl: CIE-10 Chile en
 R</h1>
 <h4 class="author">Rodolfo Tasso Suazo</h4>
-<h4 class="date">2026-04-18</h4>
+<h4 class="date">2026-10-02</h4>
 
 
 
 <blockquote>
-<p><strong>Version 0.9.3</strong>: Disponible en CRAN con optimizaciones
-SQLite y soporte XLSX.</p>
+<p><strong>Versión 0.9.8</strong>: Disponible en CRAN con optimizaciones
+SQLite, soporte XLSX y argumentos estandarizados en inglés.</p>
 </blockquote>
-<div id="acerca-del-dataset" class="section level2">
-<h2>Acerca del dataset</h2>
-<p>El paquete incluye <strong>39,877 codigos CIE-10</strong> del
-catalogo oficial MINSAL/DEIS v2018, incluyendo categorias (3 digitos) y
-subcategorias (4+ digitos).</p>
+<div id="el-problema-codificar-diagnósticos-en-chile" class="section level2">
+<h2>El problema: codificar diagnósticos en Chile</h2>
+<p>Los sistemas de información sanitaria chilenos —DEIS, GRD, REM—
+almacenan diagnósticos usando la clasificación CIE-10 en su versión
+oficial MINSAL/DEIS v2018. Trabajar con estos datos en R sin una
+referencia local obliga al analista a consultar PDFs, tablas Excel o
+sitios web, interrumpiendo el flujo de análisis.</p>
+<p><code>ciecl</code> resuelve este problema: incorpora los
+<strong>39.877 códigos CIE-10</strong> del catálogo oficial directamente
+en R, con funciones de búsqueda rápida, expansión jerárquica y cálculo
+de índices de comorbilidad.</p>
 </div>
-<div id="instalacion" class="section level2">
-<h2>Instalacion</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Desde GitHub (version beta)</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Alternativa con devtools</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;RodoTasso/ciecl&quot;</span>)</span></code></pre></div>
+<div id="instalación" class="section level2">
+<h2>Instalación</h2>
+<p>El paquete está disponible en CRAN. Para instalar la versión
+estable:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;ciecl&quot;</span>)</span></code></pre></div>
+<p>Para la versión de desarrollo, que incluye las funcionalidades más
+recientes antes de su paso a CRAN:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Requiere el paquete pak para una gestión eficiente de dependencias</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">&quot;ropensci/ciecl&quot;</span>)</span></code></pre></div>
 </div>
-<div id="busqueda-sql-rapida" class="section level2">
-<h2>Busqueda SQL rapida</h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Todos los codigos diabetes tipo 2</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">cie10_sql</span>(<span class="st">&quot;SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE &#39;E11%&#39; LIMIT 5&quot;</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 2</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                                           </span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;                                                 </span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt; 1 E11    Diabetes mellitus no insulinodependiente              </span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt; 2 E11.0  Diabetes mellitus tipo 2 con coma                     </span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt; 3 E11.1  Diabetes mellitus tipo 2 con cetoacidosis             </span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; 4 E11.2  Diabetes mellitus tipo 2 con complicaciones renales   </span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 5 E11.3  Diabetes mellitus tipo 2 con complicaciones oftálmicas</span></span></code></pre></div>
+<div id="consultas-sql-directas-al-catálogo" class="section level2">
+<h2>Consultas SQL directas al catálogo</h2>
+<p>La función <code>cie10_sql()</code> permite interactuar directamente
+con la base de datos SQLite interna. Esto otorga una gran flexibilidad
+para realizar filtros complejos que no están cubiertos por las funciones
+predefinidas, utilizando toda la potencia del lenguaje SQL.</p>
+<p>El siguiente ejemplo extrae los primeros cinco códigos de diabetes
+tipo 2 (categoría E11):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">cie10_sql</span>(<span class="st">&quot;SELECT codigo, descripcion FROM cie10 WHERE codigo LIKE &#39;E11%&#39; LIMIT 5&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 2</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion                                           </span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;                                                 </span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; 1 E11    Diabetes mellitus no insulinodependiente              </span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 2 E11.0  Diabetes mellitus tipo 2 con coma                     </span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; 3 E11.1  Diabetes mellitus tipo 2 con cetoacidosis             </span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; 4 E11.2  Diabetes mellitus tipo 2 con complicaciones renales   </span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; 5 E11.3  Diabetes mellitus tipo 2 con complicaciones oftálmicas</span></span></code></pre></div>
+<p>Por razones de seguridad y para preservar la integridad del estándar,
+la función solo permite consultas de tipo <code>SELECT</code>. Esto
+asegura que el catálogo permanezca como una fuente de verdad inmutable
+durante el análisis.</p>
 </div>
-<div id="busqueda-por-codigo" class="section level2">
-<h2>Busqueda por codigo</h2>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Busqueda de un solo codigo</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11.0&quot;</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 10</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion       categoria seccion capitulo_nombre inclusion exclusion</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 1 E11.0  Diabetes mellitu… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;</span></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co"># Busqueda vectorizada - multiples codigos a la vez</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>codigos <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I10&quot;</span>, <span class="st">&quot;Z00&quot;</span>, <span class="st">&quot;J44.0&quot;</span>)</span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">cie_lookup</span>(codigos)</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 10</span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion       categoria seccion capitulo_nombre inclusion exclusion</span></span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; 1 E11.0  Diabetes mellitu… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; 2 I10    Hipertensión ese… I10 HIPE… I10-I1… Cap.09  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; 3 J44.0  Enfermedad pulmo… J44 OTRA… J40-J4… Cap.10  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; 4 Z00    Examen general e… Z00 EXAM… Z00-Z1… Cap.21  FACTOR… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;</span></span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co"># Expansion jerarquica</span></span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11&quot;</span>, <span class="at">expandir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 10</span></span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion      categoria seccion capitulo_nombre inclusion exclusion</span></span>
-<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
-<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt;  1 E11    Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt;  2 E11.0  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co">#&gt;  3 E11.1  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co">#&gt;  4 E11.2  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co">#&gt;  5 E11.3  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="co">#&gt;  6 E11.4  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="co">#&gt;  7 E11.5  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="co">#&gt;  8 E11.6  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="co">#&gt;  9 E11.7  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="co">#&gt; 10 E11.8  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="co">#&gt; 11 E11.9  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
-<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;</span></span></code></pre></div>
+<div id="búsqueda-por-código-conocido" class="section level2">
+<h2>Búsqueda por código conocido</h2>
+<p>Cuando el analista ya dispone de los códigos —como ocurre
+habitualmente en los registros de egreso hospitalario—,
+<code>cie_lookup()</code> permite recuperar la descripción oficial de
+forma instantánea. Esta función actúa como el puente necesario entre la
+codificación técnica y la interpretación clínica.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Recuperar un código único</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11.0&quot;</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 11</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion       categoria seccion capitulo_nombre inclusion exclusion</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; 1 E11.0  Diabetes mellitu… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; # ℹ 4 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;,</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; #   uso_cl &lt;chr&gt;</span></span></code></pre></div>
+<p>La función es totalmente vectorizada, lo que facilita su integración
+en pipelines de procesamiento masivo. Devuelve un objeto
+<code>tibble</code> con una estructura consistente:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Múltiples códigos de distintos capítulos en una sola llamada</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I10&quot;</span>, <span class="st">&quot;Z00&quot;</span>, <span class="st">&quot;J44.0&quot;</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 11</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt;   codigo descripcion       categoria seccion capitulo_nombre inclusion exclusion</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; 1 E11.0  Diabetes mellitu… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; 2 I10    Hipertensión ese… I10 HIPE… I10-I1… Cap.09  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; 3 J44.0  Enfermedad pulmo… J44 OTRA… J40-J4… Cap.10  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; 4 Z00    Examen general e… Z00 EXAM… Z00-Z1… Cap.21  FACTOR… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 4 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;,</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; #   uso_cl &lt;chr&gt;</span></span></code></pre></div>
+<p>En investigaciones que operan a nivel de categoría (los primeros tres
+dígitos), el argumento <code>expand = TRUE</code> resulta fundamental,
+ya que desglosa la jerarquía completa de una familia de códigos:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">cie_lookup</span>(<span class="st">&quot;E11&quot;</span>, <span class="at">expand =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 11</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion      categoria seccion capitulo_nombre inclusion exclusion</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;    </span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt;  1 E11    Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt;  2 E11.0  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt;  3 E11.1  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;  4 E11.2  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;  5 E11.3  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  6 E11.4  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  7 E11.5  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  8 E11.6  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  9 E11.7  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; 10 E11.8  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; 11 E11.9  Diabetes mellit… E11 DIAB… E08-E1… Cap.04  ENFERM… &lt;NA&gt;      &lt;NA&gt;     </span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; # ℹ 4 more variables: capitulo &lt;chr&gt;, es_daga &lt;int&gt;, es_cruz &lt;int&gt;,</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; #   uso_cl &lt;chr&gt;</span></span></code></pre></div>
 </div>
-<div id="busqueda-fuzzy-con-typos" class="section level2">
-<h2>Busqueda fuzzy con typos</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Encuentra aunque este mal escrito</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;diabetis con coma&quot;</span>, <span class="at">threshold =</span> <span class="fl">0.75</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 50 × 4</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt;  1 B15.0  Hepatitis aguda tipo A, con coma hepático              0.667 B15 HEPA…</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt;  2 B16.0  Hepatitis aguda tipo B, con agente delta (coinfección… 0.667 B16 HEPA…</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt;  3 B16.1  Hepatitis aguda tipo B, con agente delta (coinfección… 0.667 B16 HEPA…</span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt;  4 B16.2  Hepatitis aguda tipo B, sin agente delta, con coma he… 0.667 B16 HEPA…</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt;  5 B19.0  Hepatitis viral no especificada, con coma hepático     0.667 B19 HEPA…</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt;  6 E10.0  Diabetes mellitus tipo 1 con coma                      0.667 E10 DIAB…</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;  7 E11.0  Diabetes mellitus tipo 2 con coma                      0.667 E11 DIAB…</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;  8 E12.0  Diabetes mellitus asociada con desnutrición, con coma  0.667 E12 DIAB…</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;  9 E13.0  Otras diabetes mellitus especificadas, con coma        0.667 E13 OTRA…</span></span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 10 E14.0  Diabetes mellitus, no especificada, con coma           0.667 E14 DIAB…</span></span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; # ℹ 40 more rows</span></span></code></pre></div>
+<div id="obtener-descripciones-para-reportes" class="section level2">
+<h2>Obtener descripciones para reportes</h2>
+<p>Si el objetivo es simplemente enriquecer una tabla existente con
+glosas descriptivas (por ejemplo, para leyendas de gráficos o reportes
+rápidos), <code>cie_describe()</code> es la opción más eficiente.
+Retorna un vector de caracteres que mantiene el orden original de la
+entrada.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">cie_describe</span>(<span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I10&quot;</span>))</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Diabetes mellitus tipo 2 con coma&quot; &quot;Hipertensión esencial (primaria)&quot;</span></span></code></pre></div>
+<p>Este enfoque optimiza el uso de memoria al evitar joins complejos,
+permitiendo operaciones fluidas dentro de un flujo
+<code>dplyr</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>egresos <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">codigo_diag =</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I10&quot;</span>, <span class="st">&quot;J44.0&quot;</span>, <span class="st">&quot;E11.0&quot;</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>egresos <span class="sc">|&gt;</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">descripcion =</span> <span class="fu">cie_describe</span>(codigo_diag))</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt;   id codigo_diag</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; 1  1       E11.0</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; 2  2         I10</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; 3  3       J44.0</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; 4  4       E11.0</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt;                                                                                        descripcion</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt; 1                                                                Diabetes mellitus tipo 2 con coma</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; 2                                                                 Hipertensión esencial (primaria)</span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; 3 Enfermedad pulmonar obstructiva crónica con infección aguda de las vías respiratorias inferiores</span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt; 4                                                                Diabetes mellitus tipo 2 con coma</span></span></code></pre></div>
 </div>
-<div id="comorbilidades-charlson" class="section level2">
-<h2>Comorbilidades Charlson</h2>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Requiere: install.packages(&quot;comorbidity&quot;)</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>df_pacientes <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">id_pac =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>),</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">diagnostico =</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I50.9&quot;</span>, <span class="st">&quot;C50.9&quot;</span>, <span class="st">&quot;N18.5&quot;</span>, <span class="st">&quot;J44.0&quot;</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>)</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="fu">cie_comorbid</span>(df_pacientes, <span class="at">id =</span> <span class="st">&quot;id_pac&quot;</span>, <span class="at">code =</span> <span class="st">&quot;diagnostico&quot;</span>, <span class="at">map =</span> <span class="st">&quot;charlson&quot;</span>)</span></code></pre></div>
+<div id="búsqueda-por-texto-con-tolerancia-a-errores" class="section level2">
+<h2>Búsqueda por texto con tolerancia a errores</h2>
+<p>Los datos clínicos de texto libre suelen presentar variaciones
+ortográficas, omisión de tildes o abreviaturas que dificultan la unión
+exacta. <code>cie_search()</code> utiliza el algoritmo Jaro-Winkler para
+encontrar la correspondencia más cercana en el catálogo oficial.</p>
+<p>El parámetro <code>threshold</code> (umbral) permite ajustar la
+sensibilidad de la búsqueda. Un valor de <code>0.75</code> suele ser un
+buen compromiso para el idioma español, permitiendo capturar errores
+comunes sin introducir demasiado ruido:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Búsqueda tolerante: &quot;diabetis&quot; en lugar de &quot;diabetes&quot;</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">cie_search</span>(<span class="st">&quot;diabetis con coma&quot;</span>, <span class="at">threshold =</span> <span class="fl">0.75</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 50 × 4</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt;    codigo descripcion                                            score categoria</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;                                                  &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt;  1 B15.0  Hepatitis aguda tipo A, con coma hepático              0.667 B15 HEPA…</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt;  2 B16.0  Hepatitis aguda tipo B, con agente delta (coinfección… 0.667 B16 HEPA…</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt;  3 B16.1  Hepatitis aguda tipo B, con agente delta (coinfección… 0.667 B16 HEPA…</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt;  4 B16.2  Hepatitis aguda tipo B, sin agente delta, con coma he… 0.667 B16 HEPA…</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt;  5 B19.0  Hepatitis viral no especificada, con coma hepático     0.667 B19 HEPA…</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt;  6 E10.0  Diabetes mellitus tipo 1 con coma                      0.667 E10 DIAB…</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt;  7 E11.0  Diabetes mellitus tipo 2 con coma                      0.667 E11 DIAB…</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt;  8 E12.0  Diabetes mellitus asociada con desnutrición, con coma  0.667 E12 DIAB…</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt;  9 E13.0  Otras diabetes mellitus especificadas, con coma        0.667 E13 OTRA…</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; 10 E14.0  Diabetes mellitus, no especificada, con coma           0.667 E14 DIAB…</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; # ℹ 40 more rows</span></span></code></pre></div>
+<p>El resultado incluye un <code>score</code> de similitud, lo que
+permite al analista evaluar la confiabilidad de la coincidencia de forma
+cuantitativa.</p>
 </div>
-<div id="tablas-interactivas" class="section level2">
-<h2>Tablas interactivas</h2>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Requiere: install.packages(&quot;gt&quot;)</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">cie_table</span>(<span class="st">&quot;E11&quot;</span>)  <span class="co"># Visualizacion GT completa</span></span></code></pre></div>
+<div id="comorbilidades-de-charlson-y-elixhauser" class="section level2">
+<h2>Comorbilidades de Charlson y Elixhauser</h2>
+<p>Para la investigación epidemiológica, la estratificación del riesgo
+es un paso crítico. <code>cie_comorbid()</code> simplifica el cálculo de
+los índices de Charlson y Elixhauser, mapeando automáticamente los
+códigos CIE-10 a sus respectivas categorías clínicas.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Requiere el paquete externo &#39;comorbidity&#39;</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>df_pacientes <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">id_pac     =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>),</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">diagnostico =</span> <span class="fu">c</span>(<span class="st">&quot;E11.0&quot;</span>, <span class="st">&quot;I50.9&quot;</span>, <span class="st">&quot;C50.9&quot;</span>, <span class="st">&quot;N18.5&quot;</span>, <span class="st">&quot;J44.0&quot;</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="fu">cie_comorbid</span>(df_pacientes, <span class="at">id =</span> <span class="st">&quot;id_pac&quot;</span>, <span class="at">code =</span> <span class="st">&quot;diagnostico&quot;</span>, <span class="at">map =</span> <span class="st">&quot;charlson&quot;</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 19</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt;   id_pac    mi   chf   pvd  cevd dementia   cpd rheumd   pud   mld  diab diabwc</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt;    &lt;dbl&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt; &lt;int&gt;  &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;  &lt;int&gt;</span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; 1      1     0     1     0     0        0     0      0     0     0     1      0</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; 2      2     0     0     0     0        0     0      0     0     0     0      0</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt; 3      3     0     0     0     0        0     1      0     0     0     0      0</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt; # ℹ 7 more variables: hp &lt;int&gt;, rend &lt;int&gt;, canc &lt;int&gt;, msld &lt;int&gt;,</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt; #   metacanc &lt;int&gt;, aids &lt;int&gt;, score_charlson &lt;dbl&gt;</span></span></code></pre></div>
+<p>El objeto resultante es una matriz de indicadores lista para ser
+incorporada en modelos de regresión o análisis de supervivencia.</p>
 </div>
-<div id="fuente-de-datos" class="section level2">
-<h2>Fuente de datos</h2>
-<p>Datos oficiales CIE-10 Chile MINSAL/DEIS v2018:</p>
+<div id="tablas-formateadas-para-publicación" class="section level2">
+<h2>Tablas formateadas para publicación</h2>
+<p>Finalmente, para la comunicación de resultados,
+<code>cie_table()</code> genera tablas en formato HTML con un diseño
+profesional utilizando el motor de <code>gt</code>. La función ajusta el
+contenido dinámicamente según la información disponible en el catálogo
+(como notas de inclusión o exclusión).</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Requiere el paquete &#39;gt&#39; instalado</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">cie_table</span>(<span class="st">&quot;E11&quot;</span>)</span></code></pre></div>
+<div id="fltkjqyjsj" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#fltkjqyjsj table {
+font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+#fltkjqyjsj thead, #fltkjqyjsj tbody, #fltkjqyjsj tfoot, #fltkjqyjsj tr, #fltkjqyjsj td, #fltkjqyjsj th {
+border-style: none;
+}
+#fltkjqyjsj p {
+margin: 0;
+padding: 0;
+}
+#fltkjqyjsj .gt_table {
+display: table;
+border-collapse: collapse;
+line-height: normal;
+margin-left: auto;
+margin-right: auto;
+color: #333333;
+font-size: 12px;
+font-weight: normal;
+font-style: normal;
+background-color: #FFFFFF;
+width: auto;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #A8A8A8;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #A8A8A8;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_caption {
+padding-top: 4px;
+padding-bottom: 4px;
+}
+#fltkjqyjsj .gt_title {
+color: #FFFFFF;
+font-size: 125%;
+font-weight: initial;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-color: #FFFFFF;
+border-bottom-width: 0;
+}
+#fltkjqyjsj .gt_subtitle {
+color: #FFFFFF;
+font-size: 85%;
+font-weight: initial;
+padding-top: 3px;
+padding-bottom: 5px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-color: #FFFFFF;
+border-top-width: 0;
+}
+#fltkjqyjsj .gt_heading {
+background-color: #1F77B4;
+text-align: center;
+border-bottom-color: #FFFFFF;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_bottom_border {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_col_headings {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_col_heading {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 6px;
+padding-left: 5px;
+padding-right: 5px;
+overflow-x: hidden;
+}
+#fltkjqyjsj .gt_column_spanner_outer {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+padding-top: 0;
+padding-bottom: 0;
+padding-left: 4px;
+padding-right: 4px;
+}
+#fltkjqyjsj .gt_column_spanner_outer:first-child {
+padding-left: 0;
+}
+#fltkjqyjsj .gt_column_spanner_outer:last-child {
+padding-right: 0;
+}
+#fltkjqyjsj .gt_column_spanner {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 5px;
+overflow-x: hidden;
+display: inline-block;
+width: 100%;
+}
+#fltkjqyjsj .gt_spanner_row {
+border-bottom-style: hidden;
+}
+#fltkjqyjsj .gt_group_heading {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+text-align: left;
+}
+#fltkjqyjsj .gt_empty_group_heading {
+padding: 0.5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: middle;
+}
+#fltkjqyjsj .gt_from_md > :first-child {
+margin-top: 0;
+}
+#fltkjqyjsj .gt_from_md > :last-child {
+margin-bottom: 0;
+}
+#fltkjqyjsj .gt_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+margin: 10px;
+border-top-style: solid;
+border-top-width: 1px;
+border-top-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+overflow-x: hidden;
+}
+#fltkjqyjsj .gt_stub {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+}
+#fltkjqyjsj .gt_stub_row_group {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+vertical-align: top;
+}
+#fltkjqyjsj .gt_row_group_first td {
+border-top-width: 2px;
+}
+#fltkjqyjsj .gt_row_group_first th {
+border-top-width: 2px;
+}
+#fltkjqyjsj .gt_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#fltkjqyjsj .gt_first_summary_row {
+border-top-style: solid;
+border-top-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_first_summary_row.thick {
+border-top-width: 2px;
+}
+#fltkjqyjsj .gt_last_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_grand_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#fltkjqyjsj .gt_first_grand_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-style: double;
+border-top-width: 6px;
+border-top-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_last_grand_summary_row_top {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: double;
+border-bottom-width: 6px;
+border-bottom-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_striped {
+background-color: rgba(128, 128, 128, 0.05);
+}
+#fltkjqyjsj .gt_table_body {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_footnotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_footnote {
+margin: 0px;
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#fltkjqyjsj .gt_sourcenotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#fltkjqyjsj .gt_sourcenote {
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#fltkjqyjsj .gt_left {
+text-align: left;
+}
+#fltkjqyjsj .gt_center {
+text-align: center;
+}
+#fltkjqyjsj .gt_right {
+text-align: right;
+font-variant-numeric: tabular-nums;
+}
+#fltkjqyjsj .gt_font_normal {
+font-weight: normal;
+}
+#fltkjqyjsj .gt_font_bold {
+font-weight: bold;
+}
+#fltkjqyjsj .gt_font_italic {
+font-style: italic;
+}
+#fltkjqyjsj .gt_super {
+font-size: 65%;
+}
+#fltkjqyjsj .gt_footnote_marks {
+font-size: 75%;
+vertical-align: 0.4em;
+position: initial;
+}
+#fltkjqyjsj .gt_asterisk {
+font-size: 100%;
+vertical-align: 0;
+}
+#fltkjqyjsj .gt_indent_1 {
+text-indent: 5px;
+}
+#fltkjqyjsj .gt_indent_2 {
+text-indent: 10px;
+}
+#fltkjqyjsj .gt_indent_3 {
+text-indent: 15px;
+}
+#fltkjqyjsj .gt_indent_4 {
+text-indent: 20px;
+}
+#fltkjqyjsj .gt_indent_5 {
+text-indent: 25px;
+}
+#fltkjqyjsj .katex-display {
+display: inline-flex !important;
+margin-bottom: 0.75em !important;
+}
+#fltkjqyjsj div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+height: 0px !important;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_heading">
+      <td colspan="2" class="gt_heading gt_title gt_font_normal" style>CIE-10 Chile: E11</td>
+    </tr>
+    <tr class="gt_heading">
+      <td colspan="2" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>Fuente: MINSAL/DEIS v2018</td>
+    </tr>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="codigo">Codigo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="descripcion">Diagnostico</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus no insulinodependiente</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.0</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con coma</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.1</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con cetoacidosis</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.2</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones renales</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.3</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones oftálmicas</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.4</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones neurológicas</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.5</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones  circulatorias periféricas</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.6</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con otras complicaciones  especificadas</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.7</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones múltiples</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.8</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 con complicaciones no especificadas</span></td></tr>
+    <tr><td headers="codigo" class="gt_row gt_left"><span class="gt_from_md">E11.9</span></td>
+<td headers="descripcion" class="gt_row gt_left"><span class="gt_from_md">Diabetes mellitus tipo 2 sin complicaciones</span></td></tr>
+  </tbody>
+  
+</table>
+</div>
+</div>
+<div id="fuente-de-datos-oficial" class="section level2">
+<h2>Fuente de datos oficial</h2>
+<p>Los datos de <code>ciecl</code> son un fiel reflejo del catálogo
+CIE-10 para Chile, mantenido por el Departamento de Estadísticas e
+Información de Salud (DEIS) del Ministerio de Salud:</p>
 <ul>
 <li>Centro FIC Chile: <a href="https://deis.minsal.cl/centrofic/" class="uri">https://deis.minsal.cl/centrofic/</a></li>
-<li>Repositorio DEIS: <a href="https://deis.minsal.cl" class="uri">https://deis.minsal.cl</a></li>
+<li>Repositorio de Datos DEIS: <a href="https://deis.minsal.cl" class="uri">https://deis.minsal.cl</a></li>
 </ul>
 </div>
-<div id="mas-informacion" class="section level2">
-<h2>Mas informacion</h2>
+<div id="colaboración-y-soporte" class="section level2">
+<h2>Colaboración y Soporte</h2>
 <ul>
-<li>Reportar problemas: <a href="https://github.com/RodoTasso/ciecl/issues" class="uri">https://github.com/RodoTasso/ciecl/issues</a></li>
-<li>Repositorio: <a href="https://github.com/RodoTasso/ciecl" class="uri">https://github.com/RodoTasso/ciecl</a></li>
+<li>Reporte de errores o sugerencias: <a href="https://github.com/ropensci/ciecl/issues" class="uri">https://github.com/ropensci/ciecl/issues</a></li>
+<li>Código fuente y documentación: <a href="https://github.com/ropensci/ciecl" class="uri">https://github.com/ropensci/ciecl</a></li>
 </ul>
 </div>
 

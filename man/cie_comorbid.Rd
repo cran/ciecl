@@ -18,7 +18,7 @@ cie_comorbid(data, id, code, map = c("charlson", "elixhauser"), assign0 = TRUE)
 \item{assign0}{Logical, asignar 0 si sin comorbilidad (default TRUE)}
 }
 \value{
-data.frame ancho con scores comorbilidad por paciente
+tibble ancho con scores comorbilidad por paciente
 }
 \description{
 Calcular comorbilidades Charlson/Elixhauser para Chile
@@ -27,18 +27,18 @@ Calcular comorbilidades Charlson/Elixhauser para Chile
 # Ver documentacion de parametros
 args(cie_comorbid)
 
-\donttest{
+\dontshow{if (rlang::is_interactive() || identical(Sys.getenv("IN_PKGDOWN"), "true")) withAutoprint(\{ # examplesIf}
 df <- data.frame(
   id_pac = c(1, 1, 2, 2),
   diag = c("E11.0", "I21.0", "C50.9", "E10.9")
 )
 cie_comorbid(df, id = "id_pac", code = "diag", map = "charlson")
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link{cie_map_comorbid}}, \code{\link{cie_normalizar}}
+\code{\link[=cie_map_comorbid]{cie_map_comorbid()}}, \code{\link[=cie_norm]{cie_norm()}}
 
-Other comorbilidades: 
-\code{\link{cie_map_comorbid}()}
+Other comorbidities:
+\code{\link[=cie_map_comorbid]{cie_map_comorbid()}}
 }
-\concept{comorbilidades}
+\concept{comorbidities}
